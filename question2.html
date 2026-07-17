@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Question 2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Question 2 of 6</h2>
+<p>On a pediatric ECG, you measure a PR interval of 90 ms in a 2-year-old. How should this be interpreted?</p>
+<form id="answer-form">
+<div class="choices">
+<label><input type="radio" name="choice" value="0" required> Prolonged PR interval, concerning for first-degree AV block</label>
+<label><input type="radio" name="choice" value="1"> Normal PR interval for this age</label>
+<label><input type="radio" name="choice" value="2"> Shortened PR interval, concerning for pre-excitation</label>
+</div>
+<h3>How confident are you in this answer?</h3>
+<div class="choices">
+<label><input type="radio" name="confidence" value="high" required> High confidence</label>
+<label><input type="radio" name="confidence" value="low"> Low confidence</label>
+</div>
+<button type="submit" class="btn">Submit answer</button>
+</form>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, recordAnswer, explanationPageFor } from "./js/game.js";
+
+const QUESTION_ID = 2;
+const CORRECT_INDEX = 1;
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("answer-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const choice = parseInt(document.querySelector('input[name="choice"]:checked').value, 10);
+    const confidence = document.querySelector('input[name="confidence"]:checked').value;
+    const isCorrect = choice === CORRECT_INDEX;
+    await recordAnswer(user.uid, QUESTION_ID, isCorrect, confidence);
+    window.location.href = explanationPageFor(QUESTION_ID, isCorrect, confidence);
+  });
+});
+</script>
+</body>
+</html>

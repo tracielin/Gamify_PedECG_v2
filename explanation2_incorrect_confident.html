@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - let's dig into this one - Question 2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite - let's dig into this one</h2>
+<p class="correct-answer">Correct answer: Normal PR interval for this age</p>
+<p>It's easy to apply adult PR-interval cutoffs to a pediatric ECG, but normal ranges shift meaningfully with age. In a 2-year-old, 90 ms sits comfortably within the normal reference range — it is neither a first-degree block (which requires prolongation beyond the age-adjusted upper limit) nor pre-excitation (which requires an interval shorter than the age-adjusted lower limit, typically paired with a delta wave). Always check interval norms against an age-specific reference table before flagging an abnormality.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - Question 2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite</h2>
+<p class="correct-answer">Correct answer: Normal PR interval for this age</p>
+<p>Not quite. PR interval norms scale with age — young children normally have shorter PR intervals than adults, so a value that would look short on an adult ECG can be entirely normal in a toddler.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

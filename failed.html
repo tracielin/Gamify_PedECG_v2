@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Level failed</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<h1>Level failed</h1>
+<p id="final-score"></p>
+<p>You didn't reach 5 points within 6 questions this time. This attempt has been recorded. You can retry the level, review the material first, or head back to the main menu.</p>
+<button id="retry-btn" class="btn">Retry level</button>
+<a href="didactic.html" class="btn secondary">Review material</a>
+<a href="mainmenu.html" class="btn secondary">Main menu</a>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, initLevelState, pickRandomFirstQuestion } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("final-score").textContent =
+    state ? `Final score: ${state.score} points` : "";
+
+  document.getElementById("retry-btn").addEventListener("click", async () => {
+    await initLevelState(user.uid);
+    window.location.href = pickRandomFirstQuestion();
+  });
+});
+</script>
+</body>
+</html>

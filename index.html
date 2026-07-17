@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PedECG Challenge - Level 1</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<h1>Pediatric ECG Challenge</h1>
+<p id="greeting">Sign in to begin the level.</p>
+<p style="font-size:14px;color:#6b7280;">You need 5 points to pass. You'll answer up to 6 questions; each correct answer earns 1-2 points depending on your confidence, and confidently wrong answers lose 2 points.</p>
+<button id="login-btn" class="btn">Sign in with Google</button>
+<button id="start-btn" class="btn" style="display:none;">Start level</button>
+<button id="logout-btn" class="btn secondary" style="display:none;">Sign out</button>
+</div>
+<script type="module">
+import { auth, googleProvider } from "./js/firebase-config.js";
+import { signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { initLevelState, pickRandomFirstQuestion } from "./js/game.js";
+
+const greeting = document.getElementById("greeting");
+const loginBtn = document.getElementById("login-btn");
+const startBtn = document.getElementById("start-btn");
+const logoutBtn = document.getElementById("logout-btn");
+
+loginBtn.addEventListener("click", () => {
+  signInWithPopup(auth, googleProvider).catch((err) => console.error("Sign-in error:", err));
+});
+
+logoutBtn.addEventListener("click", () => signOut(auth));
+
+startBtn.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  await initLevelState(user.uid);
+  window.location.href = pickRandomFirstQuestion();
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    greeting.textContent = `Welcome, ${user.displayName || "player"}! Ready to start?`;
+    loginBtn.style.display = "none";
+    startBtn.style.display = "inline-block";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    greeting.textContent = "Sign in to begin the level.";
+    loginBtn.style.display = "inline-block";
+    startBtn.style.display = "none";
+    logoutBtn.style.display = "none";
+  }
+});
+</script>
+</body>
+</html>

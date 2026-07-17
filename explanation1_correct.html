@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Correct! - Question 1</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Correct!</h2>
+<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
+<p>Correct. Normal heart rate ranges are age-dependent, and 150 bpm with a clearly identifiable P wave before every QRS is consistent with sinus tachycardia or a normal upper-range sinus rhythm for a 4-year-old, not a pathologic arrhythmia.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

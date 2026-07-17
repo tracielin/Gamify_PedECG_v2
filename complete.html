@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Level complete</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<h1>Level complete!</h1>
+<p id="final-score" class="correct-answer"></p>
+<p>Nice work - you reached the points needed to pass this level.</p>
+<a href="mainmenu.html" class="btn">Back to main menu</a>
+</div>
+<script type="module">
+import { requireAuth, getLevelState } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("final-score").textContent =
+    state ? `Final score: ${state.score} points` : "";
+});
+</script>
+</body>
+</html>

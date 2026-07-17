@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Question 5</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Question 5 of 6</h2>
+<p>An ECG rhythm strip in an infant shows a regular, narrow-complex tachycardia at 220 bpm with no clearly visible P waves. What is the most likely diagnosis?</p>
+<form id="answer-form">
+<div class="choices">
+<label><input type="radio" name="choice" value="0" required> Sinus tachycardia</label>
+<label><input type="radio" name="choice" value="1"> Supraventricular tachycardia (SVT)</label>
+<label><input type="radio" name="choice" value="2"> Ventricular tachycardia</label>
+</div>
+<h3>How confident are you in this answer?</h3>
+<div class="choices">
+<label><input type="radio" name="confidence" value="high" required> High confidence</label>
+<label><input type="radio" name="confidence" value="low"> Low confidence</label>
+</div>
+<button type="submit" class="btn">Submit answer</button>
+</form>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, recordAnswer, explanationPageFor } from "./js/game.js";
+
+const QUESTION_ID = 5;
+const CORRECT_INDEX = 1;
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("answer-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const choice = parseInt(document.querySelector('input[name="choice"]:checked').value, 10);
+    const confidence = document.querySelector('input[name="confidence"]:checked').value;
+    const isCorrect = choice === CORRECT_INDEX;
+    await recordAnswer(user.uid, QUESTION_ID, isCorrect, confidence);
+    window.location.href = explanationPageFor(QUESTION_ID, isCorrect, confidence);
+  });
+});
+</script>
+</body>
+</html>

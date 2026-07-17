@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - let's dig into this one - Question 3</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite - let's dig into this one</h2>
+<p class="correct-answer">Correct answer: No, this is abnormally prolonged for a neonate</p>
+<p>A common mistake is anchoring on adult QRS norms, where 100 ms is unremarkable. Neonatal conduction system properties are different — normal neonatal QRS duration is narrower, so 100 ms represents meaningful prolongation for this age and should raise concern for a conduction abnormality (such as a bundle branch block or ventricular conduction delay) rather than being dismissed as normal.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

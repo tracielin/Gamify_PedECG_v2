@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - Question 1</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite</h2>
+<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
+<p>Not quite. The key clue here is the presence of a normal P wave before every QRS complex — that's the hallmark of a sinus mechanism. In young children, normal resting heart rates run higher than in adults, so 150 bpm can still be a normal sinus rhythm for this age.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - let's dig into this one - Question 5</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite - let's dig into this one</h2>
+<p class="correct-answer">Correct answer: Supraventricular tachycardia (SVT)</p>
+<p>Sinus tachycardia in infants can occasionally reach high rates, but it almost always shows visible P waves and some beat-to-beat rate variability with the underlying clinical state (fever, agitation, etc). A rate this high (220 bpm) that is machine-regular and lacks visible P waves is a classic SVT pattern, not sinus tachycardia. Ventricular tachycardia, by contrast, would typically show a wide-complex rhythm — since this strip is narrow-complex, VT is far less likely here.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

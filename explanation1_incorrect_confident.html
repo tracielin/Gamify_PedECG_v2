@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - let's dig into this one - Question 1</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite - let's dig into this one</h2>
+<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
+<p>This is a common pitfall: a fast rate is mistaken for SVT without checking the P waves first. The single most important discriminator between sinus tachycardia and SVT is P-wave morphology and its relationship to the QRS — SVT typically shows an abnormal, absent, or retrograde P wave, or none at all. Since a normal P wave precedes every QRS here, this points to a sinus mechanism, not SVT. Remember: pediatric normal heart rate ranges are much wider and higher than adult ranges, especially in preschool-age children, so rate alone should never be your only criterion.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

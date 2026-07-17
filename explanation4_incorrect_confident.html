@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Not quite - let's dig into this one - Question 4</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+<p class="score-display" id="score-display"></p>
+<h2>Not quite - let's dig into this one</h2>
+<p class="correct-answer">Correct answer: This is a prolonged QTc, warranting further evaluation</p>
+<p>It can be tempting to treat any QTc under 500 ms as reassuring, but the clinically meaningful cutoff for concern is much lower — generally 440-460 ms depending on the reference standard used. A QTc of 480 ms clearly exceeds that threshold and warrants further work-up (medication review, electrolyte check, family history, consideration of congenital long QT syndrome) rather than being written off as normal or borderline.</p>
+<button id="continue-btn" class="btn">Continue</button>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
+
+  document.getElementById("continue-btn").addEventListener("click", async () => {
+    const next = await determineNextDestination(user.uid);
+    window.location.href = next;
+  });
+});
+</script>
+</body>
+</html>

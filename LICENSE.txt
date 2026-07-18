@@ -1,0 +1,9 @@
+Copyright (c) 2026 Tracie Lin
+
+All rights reserved. 
+
+Permission is hereby granted only for the purpose of viewing the repository code 
+and hosting the website via GitHub Pages. 
+
+No part of this project may be reproduced, distributed, or transmitted in any form 
+or by any means without the prior written permission of the copyright holder.

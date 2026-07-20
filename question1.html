@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Question 1 of 6</h2>
@@ -24,16 +36,20 @@
 <button type="submit" class="btn">Submit answer</button>
 </form>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, recordAnswer, explanationPageFor } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 const QUESTION_ID = 1;
 const CORRECT_INDEX = 0;
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${state.score}` : "";
+  applyProgressBar(score);
 
   document.getElementById("answer-form").addEventListener("submit", async (e) => {
     e.preventDefault();

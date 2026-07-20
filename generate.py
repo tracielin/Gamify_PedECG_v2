@@ -97,6 +97,18 @@ def esc(s):
     )
 
 
+SIDEBAR_HTML = """<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>"""
+
 QUESTION_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,6 +117,8 @@ QUESTION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+""" + SIDEBAR_HTML + """
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Question {n} of 6</h2>
@@ -123,16 +137,20 @@ QUESTION_TEMPLATE = """<!DOCTYPE html>
 <button type="submit" class="btn">Submit answer</button>
 </form>
 </div>
+</div>
 <script type="module">
 import {{ requireAuth, getLevelState, recordAnswer, explanationPageFor }} from "./js/game.js";
+import {{ applyProgressBar }} from "./js/sidebar.js";
 
 const QUESTION_ID = {n};
 const CORRECT_INDEX = {correct};
 
 requireAuth(async (user) => {{
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${{state.score}}` : "";
+  applyProgressBar(score);
 
   document.getElementById("answer-form").addEventListener("submit", async (e) => {{
     e.preventDefault();
@@ -156,6 +174,8 @@ EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+""" + SIDEBAR_HTML + """
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>{heading}</h2>
@@ -163,13 +183,17 @@ EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 <p>{explanation}</p>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
+</div>
 <script type="module">
 import {{ requireAuth, getLevelState, determineNextDestination }} from "./js/game.js";
+import {{ applyProgressBar }} from "./js/sidebar.js";
 
 requireAuth(async (user) => {{
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${{state.score}}` : "";
+  applyProgressBar(score);
 
   document.getElementById("continue-btn").addEventListener("click", async () => {{
     const next = await determineNextDestination(user.uid);

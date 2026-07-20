@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Not quite - let's dig into this one</h2>
@@ -13,13 +25,17 @@
 <p>It's easy to see 'a dropped beat' and jump straight to Mobitz Type II, but the two are distinguished by what happens to the PR interval leading up to the drop. Mobitz Type I (Wenckebach) shows progressive PR lengthening before the dropped beat, then the cycle resets. Mobitz Type II shows a constant PR interval right up until the sudden dropped beat, with no progressive lengthening. Third-degree block is different again — there, P waves and QRS complexes are completely dissociated with no conducted beats at all. The progressive-lengthening pattern described here is the textbook signature of Wenckebach.</p>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${state.score}` : "";
+  applyProgressBar(score);
 
   document.getElementById("continue-btn").addEventListener("click", async () => {
     const next = await determineNextDestination(user.uid);

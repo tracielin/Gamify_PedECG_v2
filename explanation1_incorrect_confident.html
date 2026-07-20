@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Not quite - let's dig into this one</h2>
@@ -13,13 +25,17 @@
 <p>This is a common pitfall: a fast rate is mistaken for SVT without checking the P waves first. The single most important discriminator between sinus tachycardia and SVT is P-wave morphology and its relationship to the QRS — SVT typically shows an abnormal, absent, or retrograde P wave, or none at all. Since a normal P wave precedes every QRS here, this points to a sinus mechanism, not SVT. Remember: pediatric normal heart rate ranges are much wider and higher than adult ranges, especially in preschool-age children, so rate alone should never be your only criterion.</p>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${state.score}` : "";
+  applyProgressBar(score);
 
   document.getElementById("continue-btn").addEventListener("click", async () => {
     const next = await determineNextDestination(user.uid);

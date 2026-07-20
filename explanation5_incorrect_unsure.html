@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Not quite</h2>
@@ -13,13 +25,17 @@
 <p>Not quite. The combination of an unusually fast, perfectly regular rate with no visible P waves is atypical for sinus tachycardia, which normally shows some rate variability and clear P waves. This pattern points to SVT instead.</p>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${state.score}` : "";
+  applyProgressBar(score);
 
   document.getElementById("continue-btn").addEventListener("click", async () => {
     const next = await determineNextDestination(user.uid);

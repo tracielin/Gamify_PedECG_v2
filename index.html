@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <h1>Pediatric ECG Challenge</h1>
 <p id="greeting">Sign in to begin the level.</p>
@@ -14,10 +26,14 @@
 <button id="start-btn" class="btn" style="display:none;">Start level</button>
 <button id="logout-btn" class="btn secondary" style="display:none;">Sign out</button>
 </div>
+</div>
 <script type="module">
 import { auth, googleProvider } from "./js/firebase-config.js";
 import { signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { initLevelState, pickRandomFirstQuestion } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
+
+applyProgressBar(0);
 
 const greeting = document.getElementById("greeting");
 const loginBtn = document.getElementById("login-btn");

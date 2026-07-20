@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
 <h2>Not quite - let's dig into this one</h2>
@@ -13,13 +25,17 @@
 <p>Sinus tachycardia in infants can occasionally reach high rates, but it almost always shows visible P waves and some beat-to-beat rate variability with the underlying clinical state (fever, agitation, etc). A rate this high (220 bpm) that is machine-regular and lacks visible P waves is a classic SVT pattern, not sinus tachycardia. Ventricular tachycardia, by contrast, would typically show a wide-complex rhythm — since this strip is narrow-complex, VT is far less likely here.</p>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, determineNextDestination } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${state.score}` : "";
+  applyProgressBar(score);
 
   document.getElementById("continue-btn").addEventListener("click", async () => {
     const next = await determineNextDestination(user.uid);

@@ -6,6 +6,18 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="sidebar">
+<div class="sidebar-image-slot">
+<img src="images/progress-icon-placeholder.svg" alt="Progress marker" class="sidebar-image">
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progress-fill"></div>
+</div>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
 <div class="card">
 <h1>Level failed</h1>
 <p id="final-score"></p>
@@ -14,13 +26,17 @@
 <a href="didactic.html" class="btn secondary">Review material</a>
 <a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
+</div>
 <script type="module">
 import { requireAuth, getLevelState, initLevelState, pickRandomFirstQuestion } from "./js/game.js";
+import { applyProgressBar } from "./js/sidebar.js";
 
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
   document.getElementById("final-score").textContent =
     state ? `Final score: ${state.score} points` : "";
+  applyProgressBar(score);
 
   document.getElementById("retry-btn").addEventListener("click", async () => {
     await initLevelState(user.uid);

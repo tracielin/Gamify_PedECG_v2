@@ -40,27 +40,85 @@ body {
 
 .sidebar-image { max-width: 100%; max-height: 100%; }
 
+/* Track: flat/rectangular (no rounding) so the zero baseline reads as a
+   clear, hard edge rather than blending into a rounded pill shape. */
 .progress-track {
+  position: relative;
   width: 28px;
   height: 240px;
-  background: #eef0f3;
+  background: #f7f8fa;
   border: 1px solid #dcdfe4;
-  border-radius: 14px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
+  box-sizing: border-box;
   flex: 0 0 auto;
+  overflow: visible; /* let the marker icon sit slightly proud of the track */
+}
+
+/* Top half = positive territory, bottom half = negative territory.
+   Each half clips its own fill so the fill never crosses the baseline. */
+.progress-half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.progress-half-positive {
+  top: 0;
+  justify-content: flex-end; /* fill's bottom edge stays pinned at baseline */
+}
+
+.progress-half-negative {
+  top: 50%;
+  justify-content: flex-start; /* fill's top edge stays pinned at baseline */
 }
 
 .progress-fill {
   width: 100%;
   height: 0%;
-  background: transparent;
-  transition: height 0.4s ease, background-color 0.4s ease;
+  transition: height 0.4s ease;
 }
 
-.progress-fill.progress-green { background: #16a34a; }
-.progress-fill.progress-red { background: #dc2626; }
+.progress-fill-positive { background: #16a34a; }
+.progress-fill-negative { background: #dc2626; }
+
+/* Hard horizontal line marking the zero baseline. */
+.progress-baseline {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: #4a4f5a;
+  z-index: 2;
+}
+
+/* Marker icon that sits at the leading edge (tip) of whichever fill is
+   active, and slides up/down as the score changes. Centered on the
+   baseline when score is exactly 0. */
+.progress-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  transition: top 0.4s ease;
+  z-index: 3;
+}
+
+.progress-marker img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #c7cbd3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  display: block;
+}
 
 .sidebar-section {
   margin-top: 28px;

@@ -98,8 +98,8 @@ def esc(s):
 
 
 SIDEBAR_HTML = """<div class="sidebar">
-<div class="sidebar-image-slot">
-<img src="images/progress-icon-placeholder.svg" alt="Goal marker" class="sidebar-image">
+<div class="sidebar-image-slot" id="level-completion-slot">
+<img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
 <div class="progress-track">
 <div class="progress-half progress-half-positive">
@@ -110,7 +110,7 @@ SIDEBAR_HTML = """<div class="sidebar">
 <div class="progress-fill progress-fill-negative" id="progress-fill-negative"></div>
 </div>
 <div class="progress-marker" id="progress-marker">
-<img src="images/progress-marker-placeholder.svg" alt="Progress character">
+<img src="images/icon-character-progress-marker.svg" alt="Progress character">
 </div>
 </div>
 <p class="progress-label">Level 1 Progress</p>

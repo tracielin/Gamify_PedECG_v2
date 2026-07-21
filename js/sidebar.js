@@ -86,17 +86,19 @@ export function applyProgressBar(score) {
 }
 
 // Plays once when the user successfully completes the level: spins the
-// marker on its Y axis, then leaves it in a green "success" state.
+// top goal icon on its Y axis, then leaves it in a green "success" state.
 export function playCompletionAnimation() {
-  const els = getElements();
-  if (!els) return;
+  const icon = document.getElementById("level-completion-icon");
+  const slot = document.getElementById("level-completion-slot");
+  if (!icon) return;
 
-  els.marker.classList.add("marker-spin");
-  els.marker.addEventListener(
+  icon.classList.add("icon-spin");
+  icon.addEventListener(
     "animationend",
     () => {
-      els.marker.classList.remove("marker-spin");
-      els.marker.classList.add("marker-success");
+      icon.classList.remove("icon-spin");
+      icon.classList.add("icon-success");
+      if (slot) slot.classList.add("icon-success");
     },
     { once: true }
   );

@@ -31,8 +31,9 @@ body {
 .sidebar-signout {
   width: 100%;
   font-size: 12px;
-  padding: 8px 10px;
-  margin-top: auto; /* push to the bottom of the right sidebar */
+  padding: 14px 10px 8px;
+  margin-top: auto; /* push to the very bottom of the right sidebar */
+  border-top: 1px solid #e1e3e8;
   text-align: center;
 }
 
@@ -68,9 +69,29 @@ body {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  perspective: 400px; /* gives the completion spin a 3D feel */
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.sidebar-image-slot.icon-success {
+  border-color: #16a34a;
+  background: #dcfce7;
 }
 
 .sidebar-image { max-width: 100%; max-height: 100%; }
+
+/* Played once when the user completes the level: the top goal icon
+   spins on its Y axis, then settles into a green "success" state. */
+@keyframes rotateY-anim {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+.sidebar-image.icon-spin {
+  animation: rotateY-anim 0.6s linear 1;
+}
 
 /* Track: flat/rectangular (no rounding) so the zero baseline reads as a
    clear, hard edge rather than blending into a rounded pill shape.
@@ -84,7 +105,6 @@ body {
   box-sizing: border-box;
   flex: 0 0 auto;
   overflow: visible; /* let the marker icon sit slightly proud of the track */
-  perspective: 500px; /* gives the marker's Y-axis spin a 3D feel */
 }
 
 /* Baseline sits 2/3 of the way down: positive (green) territory gets the
@@ -161,22 +181,6 @@ body {
   border: 2px solid #c7cbd3;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   display: block;
-}
-
-/* Played once when the user completes the level: the marker spins on
-   its Y axis, then settles into a green "success" ring. */
-@keyframes rotateY-anim {
-  from { transform: translate(-50%, -50%) rotateY(0deg); }
-  to   { transform: translate(-50%, -50%) rotateY(360deg); }
-}
-
-.progress-marker.marker-spin {
-  animation: rotateY-anim 0.6s linear 1;
-}
-
-.progress-marker.marker-success img {
-  border-color: #16a34a;
-  background: #dcfce7;
 }
 
 .sidebar-section {

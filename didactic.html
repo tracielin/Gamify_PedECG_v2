@@ -22,6 +22,7 @@
 <img src="images/progress-marker-placeholder.svg" alt="Progress character">
 </div>
 </div>
+<p class="progress-label">Level 1 Progress</p>
 <div class="sidebar-section sidebar-placeholder">
 <p>More metrics &amp; menu coming soon</p>
 </div>
@@ -30,9 +31,50 @@
 <div class="card">
 <h1>Review material</h1>
 <p>This is a placeholder for the level's didactic/teaching content (key concepts, reference ranges, worked examples, etc). Replace this with your real teaching material.</p>
-<a href="failed.html" class="btn secondary">Back</a>
-<a href="mainmenu.html" class="btn">Main menu</a>
+<button id="retry-btn" class="btn">Retry Level 1</button>
+<a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
 </div>
+<div class="sidebar sidebar-right">
+<button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
+<button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
+<button id="signout-btn" class="btn secondary sidebar-signout" type="button">Sign out</button>
+</div>
+<div class="popover-overlay" id="ref1-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref1-close" type="button" aria-label="Close">&times;</button>
+<h3>Normal Ranges Reference</h3>
+<p>Placeholder reference content - replace with your real quick-reference material (e.g. normal heart rate, PR interval, QRS duration, and QTc ranges by age).</p>
+</div>
+</div>
+<div class="popover-overlay" id="ref2-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref2-close" type="button" aria-label="Close">&times;</button>
+<h3>Rhythm Recognition Tips</h3>
+<p>Placeholder reference content - replace with your real quick tips (e.g. how to distinguish sinus tachycardia from SVT, or Mobitz Type I from Type II).</p>
+</div>
+</div>
+<script type="module">
+import { requireAuth, getLevelState, initLevelState, pickRandomFirstQuestion, auth, signOut } from "./js/game.js";
+import { setProgressBar } from "./js/sidebar.js";
+import { setupPopover } from "./js/popover.js";
+
+document.getElementById("signout-btn").addEventListener("click", () => {
+  signOut(auth).then(() => { window.location.href = "index.html"; });
+});
+setupPopover("ref1-btn", "ref1-overlay");
+setupPopover("ref2-btn", "ref2-overlay");
+
+requireAuth(async (user) => {
+  const state = await getLevelState(user.uid);
+  const score = state ? state.score : 0;
+  setProgressBar(score);
+
+  document.getElementById("retry-btn").addEventListener("click", async () => {
+    await initLevelState(user.uid);
+    window.location.href = pickRandomFirstQuestion();
+  });
+});
+</script>
 </body>
 </html>

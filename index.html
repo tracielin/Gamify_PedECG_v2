@@ -22,6 +22,7 @@
 <img src="images/progress-marker-placeholder.svg" alt="Progress character">
 </div>
 </div>
+<p class="progress-label">Level 1 Progress</p>
 <div class="sidebar-section sidebar-placeholder">
 <p>More metrics &amp; menu coming soon</p>
 </div>
@@ -33,27 +34,48 @@
 <p style="font-size:14px;color:#6b7280;">You need 5 points to pass. You'll answer up to 6 questions; each correct answer earns 1-2 points depending on your confidence, and confidently wrong answers lose 2 points.</p>
 <button id="login-btn" class="btn">Sign in with Google</button>
 <button id="start-btn" class="btn" style="display:none;">Start level</button>
-<button id="logout-btn" class="btn secondary" style="display:none;">Sign out</button>
+</div>
+</div>
+<div class="sidebar sidebar-right">
+<button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
+<button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
+<button id="signout-btn" class="btn secondary sidebar-signout" type="button" style="display:none;">Sign out</button>
+</div>
+<div class="popover-overlay" id="ref1-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref1-close" type="button" aria-label="Close">&times;</button>
+<h3>Normal Ranges Reference</h3>
+<p>Placeholder reference content - replace with your real quick-reference material (e.g. normal heart rate, PR interval, QRS duration, and QTc ranges by age).</p>
+</div>
+</div>
+<div class="popover-overlay" id="ref2-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref2-close" type="button" aria-label="Close">&times;</button>
+<h3>Rhythm Recognition Tips</h3>
+<p>Placeholder reference content - replace with your real quick tips (e.g. how to distinguish sinus tachycardia from SVT, or Mobitz Type I from Type II).</p>
 </div>
 </div>
 <script type="module">
 import { auth, googleProvider } from "./js/firebase-config.js";
 import { signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { initLevelState, pickRandomFirstQuestion } from "./js/game.js";
-import { applyProgressBar } from "./js/sidebar.js";
+import { setProgressBar } from "./js/sidebar.js";
+import { setupPopover } from "./js/popover.js";
 
-applyProgressBar(0);
+setProgressBar(0);
+setupPopover("ref1-btn", "ref1-overlay");
+setupPopover("ref2-btn", "ref2-overlay");
 
 const greeting = document.getElementById("greeting");
 const loginBtn = document.getElementById("login-btn");
 const startBtn = document.getElementById("start-btn");
-const logoutBtn = document.getElementById("logout-btn");
+const signoutBtn = document.getElementById("signout-btn");
 
 loginBtn.addEventListener("click", () => {
   signInWithPopup(auth, googleProvider).catch((err) => console.error("Sign-in error:", err));
 });
 
-logoutBtn.addEventListener("click", () => signOut(auth));
+signoutBtn.addEventListener("click", () => signOut(auth));
 
 startBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
@@ -67,12 +89,12 @@ onAuthStateChanged(auth, (user) => {
     greeting.textContent = `Welcome, ${user.displayName || "player"}! Ready to start?`;
     loginBtn.style.display = "none";
     startBtn.style.display = "inline-block";
-    logoutBtn.style.display = "inline-block";
+    signoutBtn.style.display = "inline-block";
   } else {
     greeting.textContent = "Sign in to begin the level.";
     loginBtn.style.display = "inline-block";
     startBtn.style.display = "none";
-    logoutBtn.style.display = "none";
+    signoutBtn.style.display = "none";
   }
 });
 </script>

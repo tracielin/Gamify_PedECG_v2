@@ -28,6 +28,38 @@ body {
   padding: 24px 12px;
 }
 
+.sidebar-signout {
+  width: 100%;
+  font-size: 12px;
+  padding: 8px 10px;
+  margin-top: auto; /* push to the bottom of the right sidebar */
+  text-align: center;
+}
+
+/* Right-side panel: mirrors the left sidebar's size/position, but holds
+   reference-material buttons at top and Sign out pinned to the bottom. */
+.sidebar-right {
+  border-right: none;
+  border-left: 1px solid #e1e3e8;
+  align-items: stretch;
+}
+
+.sidebar-ref-btn {
+  width: 100%;
+  font-size: 12px;
+  padding: 10px 8px;
+  margin: 0 0 10px;
+  text-align: center;
+}
+
+.progress-label {
+  margin: 14px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4f5a;
+  text-align: center;
+}
+
 .sidebar-image-slot {
   width: 56px;
   height: 56px;
@@ -41,25 +73,26 @@ body {
 .sidebar-image { max-width: 100%; max-height: 100%; }
 
 /* Track: flat/rectangular (no rounding) so the zero baseline reads as a
-   clear, hard edge rather than blending into a rounded pill shape. */
+   clear, hard edge rather than blending into a rounded pill shape.
+   Height scales with viewport height, within sane min/max bounds. */
 .progress-track {
   position: relative;
   width: 28px;
-  height: 240px;
+  height: clamp(280px, 50vh, 600px);
   background: #f7f8fa;
   border: 1px solid #dcdfe4;
   box-sizing: border-box;
   flex: 0 0 auto;
   overflow: visible; /* let the marker icon sit slightly proud of the track */
+  perspective: 500px; /* gives the marker's Y-axis spin a 3D feel */
 }
 
-/* Top half = positive territory, bottom half = negative territory.
-   Each half clips its own fill so the fill never crosses the baseline. */
+/* Baseline sits 2/3 of the way down: positive (green) territory gets the
+   top 2/3 of the track, negative (red) territory gets the bottom 1/3. */
 .progress-half {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 50%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -67,11 +100,13 @@ body {
 
 .progress-half-positive {
   top: 0;
+  height: 66.6667%;
   justify-content: flex-end; /* fill's bottom edge stays pinned at baseline */
 }
 
 .progress-half-negative {
-  top: 50%;
+  top: 66.6667%;
+  height: 33.3333%;
   justify-content: flex-start; /* fill's top edge stays pinned at baseline */
 }
 
@@ -79,6 +114,14 @@ body {
   width: 100%;
   height: 0%;
   transition: height 0.4s ease;
+}
+
+/* Used to jump the bar to a starting position instantly (no animation)
+   before animating it to its real target - lets an animation start from
+   wherever the bar previously was instead of always resetting to 0. */
+.progress-fill.no-transition,
+.progress-marker.no-transition {
+  transition: none !important;
 }
 
 .progress-fill-positive { background: #16a34a; }
@@ -89,7 +132,7 @@ body {
   position: absolute;
   left: -6px;
   right: -6px;
-  top: 50%;
+  top: 66.6667%;
   height: 2px;
   margin-top: -1px;
   background: #4a4f5a;
@@ -102,7 +145,7 @@ body {
 .progress-marker {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 66.6667%;
   width: 30px;
   height: 30px;
   transform: translate(-50%, -50%);
@@ -118,6 +161,22 @@ body {
   border: 2px solid #c7cbd3;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   display: block;
+}
+
+/* Played once when the user completes the level: the marker spins on
+   its Y axis, then settles into a green "success" ring. */
+@keyframes rotateY-anim {
+  from { transform: translate(-50%, -50%) rotateY(0deg); }
+  to   { transform: translate(-50%, -50%) rotateY(360deg); }
+}
+
+.progress-marker.marker-spin {
+  animation: rotateY-anim 0.6s linear 1;
+}
+
+.progress-marker.marker-success img {
+  border-color: #16a34a;
+  background: #dcfce7;
 }
 
 .sidebar-section {
@@ -186,6 +245,17 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   margin-right: 10px;
 }
 
+/* Confidence rating: laid out side by side, low on the left, high on
+   the right, rather than stacked. */
+.choices-horizontal {
+  flex-direction: row;
+}
+
+.choices-horizontal label {
+  flex: 1;
+  text-align: center;
+}
+
 .btn {
   display: inline-block;
   background: #2563eb;
@@ -217,3 +287,47 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   border-radius: 8px;
   padding: 10px 14px;
 }
+
+/* ---- Reference-material popovers (triggered from the right sidebar) ---- */
+
+.popover-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 18, 26, 0.5);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.popover-overlay.open {
+  display: flex;
+}
+
+.popover-box {
+  position: relative;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.popover-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.popover-close:hover { color: #1f2430; }

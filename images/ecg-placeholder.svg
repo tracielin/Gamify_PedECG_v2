@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" role="img">
+<title>Placeholder ECG strip</title>
+<desc>Placeholder ECG rhythm strip graphic for Level 2 - replace with a real strip image per question.</desc>
+<defs>
+<pattern id="ecgGridSmall" width="12" height="12" patternUnits="userSpaceOnUse">
+<path d="M12 0 L0 0 0 12" fill="none" stroke="#fbc9d2" stroke-width="0.5"/>
+</pattern>
+<pattern id="ecgGridBold" width="60" height="60" patternUnits="userSpaceOnUse">
+<rect width="60" height="60" fill="url(#ecgGridSmall)"/>
+<path d="M60 0 L0 0 0 60" fill="none" stroke="#f2879b" stroke-width="1"/>
+</pattern>
+</defs>
+<rect width="600" height="240" fill="#fff5f6"/>
+<rect width="600" height="240" fill="url(#ecgGridBold)"/>
+<path d="M0,120 C5,120 8,108 12,108 C16,108 18,120 22,120 L38,120 L40,60 L44,175 L48,95 L52,120 L64,120 C70,120 74,95 78,95 C82,95 86,120 92,120 L150,120 C155,120 158,108 162,108 C166,108 168,120 172,120 L188,120 L190,60 L194,175 L198,95 L202,120 L214,120 C220,120 224,95 228,95 C232,95 236,120 242,120 L300,120 C305,120 308,108 312,108 C316,108 318,120 322,120 L338,120 L340,60 L344,175 L348,95 L352,120 L364,120 C370,120 374,95 378,95 C382,95 386,120 392,120 L450,120 C455,120 458,108 462,108 C466,108 468,120 472,120 L488,120 L490,60 L494,175 L498,95 L502,120 L514,120 C520,120 524,95 528,95 C532,95 536,120 542,120 L600,120" fill="none" stroke="#1f2430" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

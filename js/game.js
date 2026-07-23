@@ -132,4 +132,140 @@ export function pickRandomFirstQuestion() {
   return `question${id}.html`;
 }
 
+// ---------------------------------------------------------------------
+// Generic, level-aware versions of the above, used by Level 2 and any
+// future levels. Level 1's pages keep using the level-1-only functions
+// above unchanged, so nothing here can affect Level 1's behavior.
+// ---------------------------------------------------------------------
+
+function levelDocRefFor(uid, levelId) {
+  return doc(db, "users", uid, "levels", levelId);
+}
+
+export async function initLevelStateFor(uid, levelId) {
+  const ref = levelDocRefFor(uid, levelId);
+  const snap = await getDoc(ref);
+  const attempt = snap.exists() ? (snap.data().attempt || 0) + 1 : 1;
+  await setDoc(ref, {
+    score: 0,
+    answeredQuestions: [],
+    status: "in-progress",
+    attempt,
+    updatedAt: serverTimestamp()
+  });
+  return ref;
+}
+
+export async function getLevelStateFor(uid, levelId) {
+  const snap = await getDoc(levelDocRefFor(uid, levelId));
+  return snap.exists() ? snap.data() : null;
+}
+
+// Records a multiple-choice answer, using the same confidence-weighted
+// scoring rule as Level 1 (scoreDelta above).
+export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confidence) {
+  const ref = levelDocRefFor(uid, levelId);
+  const delta = scoreDelta(isCorrect, confidence);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : { score: 0 };
+  const newScore = (data.score || 0) + delta;
+
+  await updateDoc(ref, {
+    score: increment(delta),
+    answeredQuestions: arrayUnion(questionId),
+    updatedAt: serverTimestamp()
+  });
+
+  await addDoc(collection(ref, "history"), {
+    questionId,
+    questionType: "mc",
+    isCorrect,
+    confidence,
+    delta,
+    scoreAfter: newScore,
+    timestamp: serverTimestamp()
+  });
+
+  return { delta, newScore };
+}
+
+// Records a free-text answer. Unlike MC scoring, the point value (delta)
+// is chosen directly by the user via the right/partial/wrong buttons on
+// the grading page - confidence has NO effect on the score here. The
+// confidence rating, the raw answer, and the computer's predicted
+// correctness are all still logged for later analysis.
+export async function recordFreetextAnswerFor(uid, levelId, questionId, delta, meta) {
+  const ref = levelDocRefFor(uid, levelId);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : { score: 0 };
+  const newScore = (data.score || 0) + delta;
+
+  await updateDoc(ref, {
+    score: increment(delta),
+    answeredQuestions: arrayUnion(questionId),
+    updatedAt: serverTimestamp()
+  });
+
+  await addDoc(collection(ref, "history"), {
+    questionId,
+    questionType: "freetext",
+    delta,
+    scoreAfter: newScore,
+    confidence: meta.confidence,
+    rawAnswer: meta.rawAnswer,
+    predictedCorrectness: meta.predicted,
+    userVerdict: meta.verdict,
+    timestamp: serverTimestamp()
+  });
+
+  return { delta, newScore };
+}
+
+// Which explanation page to show for a given MC question/outcome, under
+// an arbitrary page prefix (e.g. "level2-").
+export function explanationPageForLevel(pagePrefix, questionId, isCorrect, confidence) {
+  if (isCorrect) return `${pagePrefix}explanation${questionId}_correct.html`;
+  if (confidence === "low") return `${pagePrefix}explanation${questionId}_incorrect_unsure.html`;
+  return `${pagePrefix}explanation${questionId}_incorrect_confident.html`;
+}
+
+// Generic completion/failure check + next-question picker, parameterized
+// per level. config: { levelId, totalQuestions, pointsToPass,
+// maxQuestions, pagePrefix }
+export async function determineNextDestinationFor(uid, config) {
+  const { levelId, totalQuestions, pointsToPass, maxQuestions, pagePrefix } = config;
+  const ref = levelDocRefFor(uid, levelId);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const score = data.score || 0;
+  const answered = data.answeredQuestions || [];
+
+  if (score >= pointsToPass) {
+    await updateDoc(ref, { status: "complete", completedAt: serverTimestamp() });
+    return `${pagePrefix}complete.html`;
+  }
+
+  if (answered.length >= maxQuestions) {
+    await updateDoc(ref, { status: "failed", failedAt: serverTimestamp() });
+    await addDoc(collection(ref, "failures"), {
+      finalScore: score,
+      answeredQuestions: answered,
+      timestamp: serverTimestamp()
+    });
+    return `${pagePrefix}failed.html`;
+  }
+
+  const remaining = [];
+  for (let i = 1; i <= totalQuestions; i++) {
+    if (!answered.includes(i)) remaining.push(i);
+  }
+  const nextId = remaining[Math.floor(Math.random() * remaining.length)];
+  return `${pagePrefix}question${nextId}.html`;
+}
+
+export function pickRandomFirstQuestionFor(config) {
+  const id = Math.floor(Math.random() * config.totalQuestions) + 1;
+  return `${config.pagePrefix}question${id}.html`;
+}
+
 export { auth, signOut };

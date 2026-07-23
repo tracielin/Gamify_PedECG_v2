@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Level 2 complete</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="sidebar">
+<div class="sidebar-image-slot" id="level-completion-slot">
+<img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
+</div>
+<div class="progress-track">
+<div class="progress-half progress-half-positive">
+<div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
+</div>
+<div class="progress-baseline"></div>
+<div class="progress-half progress-half-negative">
+<div class="progress-fill progress-fill-negative" id="progress-fill-negative"></div>
+</div>
+<div class="progress-marker" id="progress-marker">
+<img src="images/icon-character-progress-marker.svg" alt="Progress character">
+</div>
+</div>
+<p class="progress-label">Level 2 Progress</p>
+<div class="sidebar-section sidebar-placeholder">
+<p>More metrics &amp; menu coming soon</p>
+</div>
+</div>
+<div class="content">
+<div class="card">
+<h1>Level 2 complete!</h1>
+<p id="final-score" class="correct-answer"></p>
+<p>Nice work - you reached the points needed to pass this level.</p>
+<a href="mainmenu.html" class="btn">Back to main menu</a>
+</div>
+</div>
+<div class="sidebar sidebar-right">
+<button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
+<button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
+<button id="signout-btn" class="btn secondary sidebar-signout" type="button">Sign out</button>
+</div>
+<div class="popover-overlay" id="ref1-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref1-close" type="button" aria-label="Close">&times;</button>
+<h3>Normal Ranges Reference</h3>
+<p>Placeholder reference content - replace with your real quick-reference material (e.g. normal heart rate, PR interval, QRS duration, and QTc ranges by age).</p>
+</div>
+</div>
+<div class="popover-overlay" id="ref2-overlay">
+<div class="popover-box">
+<button class="popover-close" id="ref2-close" type="button" aria-label="Close">&times;</button>
+<h3>Rhythm Recognition Tips</h3>
+<p>Placeholder reference content - replace with your real quick tips (e.g. how to distinguish sinus tachycardia from SVT, or Mobitz Type I from Type II).</p>
+</div>
+</div>
+<script type="module">
+import { requireAuth, getLevelStateFor, auth, signOut } from "./js/game.js";
+import { setProgressBar, playCompletionAnimation } from "./js/sidebar.js";
+import { setupPopover } from "./js/popover.js";
+
+const LEVEL_ID = "level2";
+
+document.getElementById("signout-btn").addEventListener("click", () => {
+  signOut(auth).then(() => { window.location.href = "index.html"; });
+});
+setupPopover("ref1-btn", "ref1-overlay");
+setupPopover("ref2-btn", "ref2-overlay");
+
+requireAuth(async (user) => {
+  const state = await getLevelStateFor(user.uid, LEVEL_ID);
+  const score = state ? state.score : 0;
+  document.getElementById("final-score").textContent =
+    state ? `Final score: ${state.score} points` : "";
+  setProgressBar(score);
+  playCompletionAnimation();
+});
+</script>
+</body>
+</html>

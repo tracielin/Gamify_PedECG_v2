@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Review material</title>
+<title>Question 1</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -29,10 +29,22 @@
 </div>
 <div class="content">
 <div class="card">
-<h1>Review material</h1>
-<p>This is a placeholder for the level's didactic/teaching content (key concepts, reference ranges, worked examples, etc). Replace this with your real teaching material.</p>
-<button id="retry-btn" class="btn">Retry Level 1</button>
-<a href="mainmenu.html" class="btn secondary">Main menu</a>
+<p class="score-display" id="score-display"></p>
+<h2>Question</h2>
+<p>A 4-year-old patient's ECG shows a heart rate of 150 bpm with a normal P wave before every QRS complex. What is the most likely rhythm?</p>
+<form id="answer-form">
+<div class="choices">
+<label><input type="radio" name="choice" value="0" required> Normal sinus rhythm for this age</label>
+<label><input type="radio" name="choice" value="1"> Supraventricular tachycardia (SVT)</label>
+<label><input type="radio" name="choice" value="2"> Sinus bradycardia</label>
+</div>
+<h3>How confident are you in this answer?</h3>
+<div class="choices choices-horizontal">
+<label><input type="radio" name="confidence" value="low" required> Low confidence</label>
+<label><input type="radio" name="confidence" value="high"> High confidence</label>
+</div>
+<button type="submit" class="btn">Submit answer</button>
+</form>
 </div>
 </div>
 <div class="sidebar sidebar-right">
@@ -55,7 +67,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, initLevelState, auth, signOut } from "./js/game.js";
+import { requireAuth, getLevelState, recordAnswer, explanationPageFor, auth, signOut } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 
@@ -65,14 +77,25 @@ document.getElementById("signout-btn").addEventListener("click", () => {
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 
+const QUESTION_ID = 1;
+const CORRECT_INDEX = 0;
+const SCORE_ANIM_KEY = "pedecgScoreAnim";
+
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
   const score = state ? state.score : 0;
+  document.getElementById("score-display").textContent =
+    state ? `Current score: ${state.score}` : "";
   setProgressBar(score);
 
-  document.getElementById("retry-btn").addEventListener("click", async () => {
-    await initLevelState(user.uid);
-    window.location.href = "level1-welcome.html";
+  document.getElementById("answer-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const choice = parseInt(document.querySelector('input[name="choice"]:checked').value, 10);
+    const confidence = document.querySelector('input[name="confidence"]:checked').value;
+    const isCorrect = choice === CORRECT_INDEX;
+    const { delta, newScore } = await recordAnswer(user.uid, QUESTION_ID, isCorrect, confidence);
+    sessionStorage.setItem(SCORE_ANIM_KEY, JSON.stringify({ from: newScore - delta, to: newScore }));
+    window.location.href = explanationPageFor(QUESTION_ID, isCorrect, confidence);
   });
 });
 </script>

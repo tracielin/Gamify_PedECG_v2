@@ -8,11 +8,23 @@
 <body>
 <div class="content">
 <div class="card">
-<h1>Main menu</h1>
-<p>This is a placeholder main menu. Add links to other levels here as they're built.</p>
-<a href="index.html" class="btn">Level 1: Pediatric ECG Challenge</a>
+<h1 id="welcome-heading">Main menu</h1>
+<p>Choose a level to play.</p>
+<a href="level1-start.html" class="btn">Level 1: Pediatric ECG Challenge</a>
 <a href="level2-start.html" class="btn">Level 2: ECG Strip Interpretation</a>
+<button id="signout-btn" class="btn secondary">Sign out</button>
 </div>
 </div>
+<script type="module">
+import { requireAuth, auth, signOut } from "./js/game.js";
+
+document.getElementById("signout-btn").addEventListener("click", () => {
+  signOut(auth).then(() => { window.location.href = "index.html"; });
+});
+
+requireAuth((user) => {
+  document.getElementById("welcome-heading").textContent = `Welcome, ${user.displayName || "player"}!`;
+});
+</script>
 </body>
 </html>

@@ -123,13 +123,13 @@ export async function determineNextDestination(uid) {
     if (!answered.includes(i)) remaining.push(i);
   }
   const nextId = remaining[Math.floor(Math.random() * remaining.length)];
-  return `question${nextId}.html`;
+  return `level1-question${nextId}.html`;
 }
 
 // Picks the first question of a fresh attempt uniformly at random.
 export function pickRandomFirstQuestion() {
   const id = Math.floor(Math.random() * TOTAL_QUESTIONS) + 1;
-  return `question${id}.html`;
+  return `level1-question${id}.html`;
 }
 
 // ---------------------------------------------------------------------

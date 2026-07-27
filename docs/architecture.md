@@ -6,7 +6,7 @@ users (Firebase Auth).
 
 ## How it works
 
-- **Question pool**: 6 unique questions (`question1.html` ... `question6.html`).
+- **Question pool**: 6 unique questions (`level1-question1.html` ... `level1-question6.html`).
   Each level attempt shows questions in a random order (no repeats within
   an attempt, since the pool size equals the max questions shown).
 - **Scoring**: correct+low confidence = +1, correct+high confidence = +2,

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Review material</title>
+<title>PedECG Challenge - Level 1</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -29,9 +29,10 @@
 </div>
 <div class="content">
 <div class="card">
-<h1>Review material</h1>
-<p>This is a placeholder for the level's didactic/teaching content (key concepts, reference ranges, worked examples, etc). Replace this with your real teaching material.</p>
-<button id="retry-btn" class="btn">Retry Level 1</button>
+<h1>Pediatric ECG Challenge</h1>
+<p id="greeting">Loading...</p>
+<p style="font-size:14px;color:#6b7280;">You need 5 points to pass. You'll answer up to 6 questions; each correct answer earns 1-2 points depending on your confidence, and confidently wrong answers lose 2 points.</p>
+<button id="start-btn" class="btn">Start level</button>
 <a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
 </div>
@@ -55,7 +56,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, initLevelState, auth, signOut } from "./js/game.js";
+import { requireAuth, initLevelState, auth, signOut } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 
@@ -64,13 +65,12 @@ document.getElementById("signout-btn").addEventListener("click", () => {
 });
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
+setProgressBar(0);
 
-requireAuth(async (user) => {
-  const state = await getLevelState(user.uid);
-  const score = state ? state.score : 0;
-  setProgressBar(score);
+requireAuth((user) => {
+  document.getElementById("greeting").textContent = `Welcome, ${user.displayName || "player"}! Ready to start?`;
 
-  document.getElementById("retry-btn").addEventListener("click", async () => {
+  document.getElementById("start-btn").addEventListener("click", async () => {
     await initLevelState(user.uid);
     window.location.href = "level1-welcome.html";
   });

@@ -39,7 +39,7 @@
 <div class="sidebar sidebar-right">
 <button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
 <button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
-<button id="signout-btn" class="btn secondary sidebar-signout" type="button">Sign out</button>
+<button id="pause-btn" class="btn secondary sidebar-pause" type="button">Pause game</button>
 </div>
 <div class="popover-overlay" id="ref1-overlay">
 <div class="popover-box">
@@ -55,14 +55,24 @@
 <p>Placeholder reference content - replace with your real quick tips (e.g. how to distinguish sinus tachycardia from SVT, or Mobitz Type I from Type II).</p>
 </div>
 </div>
+<div class="popover-overlay" id="pause-overlay">
+<div class="popover-box">
+<button class="popover-close" id="pause-close" type="button" aria-label="Close">&times;</button>
+<h3>Game Paused</h3>
+<p id="pause-message"></p>
+<div class="pause-modal-actions">
+<button id="pause-menu-btn" class="btn secondary" type="button">Return to Main Menu</button>
+<button id="pause-resume-btn" class="btn" type="button">Resume Level</button>
+</div>
+</div>
+</div>
 <script type="module">
-import { requireAuth, initLevelState, pickRandomFirstQuestion, auth, signOut } from "./js/game.js";
+import { requireAuth, initLevelState, pickRandomFirstQuestion } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
+import { setupPauseModal } from "./js/pause.js";
 
-document.getElementById("signout-btn").addEventListener("click", () => {
-  signOut(auth).then(() => { window.location.href = "index.html"; });
-});
+setupPauseModal(1);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 setProgressBar(0);

@@ -37,6 +37,19 @@ body {
   text-align: center;
 }
 
+/* "Pause game" button: pinned to the bottom of the right-hand toolbar,
+   just like .sidebar-signout, even when there's a large gap between it
+   and the reference buttons above. Pages that show this button don't
+   also show a Sign out button. */
+.sidebar-pause {
+  width: 100%;
+  font-size: 12px;
+  padding: 14px 10px 8px;
+  margin-top: auto;
+  border-top: 1px solid #e1e3e8;
+  text-align: center;
+}
+
 /* Right-side panel: mirrors the left sidebar's size/position, but holds
    reference-material buttons at top and Sign out pinned to the bottom. */
 .sidebar-right {
@@ -329,6 +342,7 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   font-size: 13px;
   color: #4a4f5a;
   line-height: 1.7;
+  margin-top: 6px;
 }
 
 .btn:disabled,
@@ -392,6 +406,15 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 }
 
 .popover-close:hover { color: #1f2430; }
+
+/* ---- Pause game modal ---- */
+
+.pause-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
 
 /* ---- Level 2: ECG image + question side-by-side layout ---- */
 

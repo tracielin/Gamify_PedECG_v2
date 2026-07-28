@@ -31,37 +31,10 @@ body {
 .sidebar-signout {
   width: 100%;
   font-size: 12px;
-  padding: 20px 10px 8px;
+  padding: 14px 10px 8px;
   margin-top: auto; /* push to the very bottom of the right sidebar */
   border-top: 1px solid #e1e3e8;
   text-align: center;
-}
-
-/* Higher specificity than the later `.btn { margin: ... }` shorthand rule,
-   so this auto top-margin doesn't get clobbered by it (same specificity,
-   later source order would otherwise win and cancel the auto value). */
-.btn.sidebar-signout {
-  margin-top: auto;
-}
-
-/* "Pause game" button: pinned to the bottom of the right-hand toolbar,
-   clearly separated from the reference buttons above by a divider line
-   plus generous top padding, even when there's a large gap between them.
-   Pages that show this button don't also show a Sign out button. */
-.sidebar-pause {
-  width: 100%;
-  font-size: 12px;
-  padding: 24px 10px 8px;
-  margin-top: auto;
-  border-top: 1px solid #e1e3e8;
-  text-align: center;
-}
-
-/* Higher specificity than the later `.btn { margin: ... }` shorthand rule,
-   so this auto top-margin doesn't get clobbered by it (same specificity,
-   later source order would otherwise win and cancel the auto value). */
-.btn.sidebar-pause {
-  margin-top: auto;
 }
 
 /* Right-side panel: mirrors the left sidebar's size/position, but holds
@@ -78,17 +51,6 @@ body {
   padding: 10px 8px;
   margin: 0 0 10px;
   text-align: center;
-}
-
-/* Higher specificity than `.btn.secondary` (2 classes) so darkgray wins
-   regardless of source order. */
-.btn.secondary.sidebar-ref-btn {
-  color: #412B15;
-  border-color: #412B15;
-}
-
-.btn.secondary.sidebar-ref-btn:hover {
-  background: #675544;
 }
 
 .progress-label {
@@ -353,64 +315,6 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   padding: 10px 14px;
 }
 
-/* ---- Main menu ---- */
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.page-header h1 { margin: 0; }
-
-.level-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.level-table th,
-.level-table td {
-  text-align: left;
-  padding: 14px 12px;
-  border-bottom: 1px solid #e1e3e8;
-  vertical-align: top;
-}
-
-.level-table th {
-  font-size: 12px;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.level-stats {
-  font-size: 13px;
-  color: #4a4f5a;
-  line-height: 1.7;
-  margin-top: 6px;
-}
-
-.btn:disabled,
-.btn.disabled {
-  background: #d1d5db;
-  color: #f3f4f6;
-  border-color: #d1d5db;
-  cursor: not-allowed;
-}
-
-.btn.secondary.disabled,
-.btn.secondary:disabled {
-  background: #f3f4f6;
-  color: #9ca3af;
-  border-color: #d1d5db;
-}
-
-.btn.disabled:hover,
-.btn:disabled:hover { background: #d1d5db; }
-
 /* ---- Reference-material popovers (triggered from the right sidebar) ---- */
 
 .popover-overlay {
@@ -454,15 +358,6 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 }
 
 .popover-close:hover { color: #1f2430; }
-
-/* ---- Pause game modal ---- */
-
-.pause-modal-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
 
 /* ---- Level 2: ECG image + question side-by-side layout ---- */
 

@@ -97,7 +97,7 @@ def esc(s):
     )
 
 
-SIDEBAR_HTML = """<div class="sidebar">
+SIDEBAR_PROGRESS_HTML = """<div class="sidebar sidebar-progress sidebar-right">
 <div class="sidebar-image-slot" id="level-completion-slot">
 <img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
@@ -119,7 +119,7 @@ SIDEBAR_HTML = """<div class="sidebar">
 </div>
 </div>"""
 
-SIDEBAR_RIGHT_HTML = """<div class="sidebar sidebar-right">
+SIDEBAR_TOOLBAR_HTML = """<div class="sidebar sidebar-toolbar sidebar-left">
 <button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
 <button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
 <button id="signout-btn" class="btn secondary sidebar-signout" type="button">Sign out</button>
@@ -160,7 +160,7 @@ QUESTION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
@@ -181,7 +181,7 @@ QUESTION_TEMPLATE = """<!DOCTYPE html>
 </form>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelState, recordAnswer, explanationPageFor, auth, signOut }} from "./js/game.js";
@@ -225,7 +225,7 @@ EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card">
 <p class="score-display" id="score-display"></p>
@@ -235,7 +235,7 @@ EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 <button id="continue-btn" class="btn">Continue</button>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelState, determineNextDestination, auth, signOut }} from "./js/game.js";

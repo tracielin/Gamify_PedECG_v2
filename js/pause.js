@@ -1,6 +1,6 @@
 import { setupPopover } from "./popover.js";
 
-// Shared "Pause game" control for pages that have a right-side toolbar.
+// Shared "Pause game" control for pages that have a toolbar panel.
 // Wires up the pause button + its popup (reusing the same open/close,
 // backdrop-click, and Escape behavior as the reference popovers), fills
 // in the level-specific copy, and wires the popup's two actions:

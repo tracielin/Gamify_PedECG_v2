@@ -34,8 +34,23 @@ function getElements() {
   const posFill = document.getElementById("progress-fill-positive");
   const negFill = document.getElementById("progress-fill-negative");
   const marker = document.getElementById("progress-marker");
-  if (!posFill || !negFill || !marker) return null;
-  return { posFill, negFill, marker };
+  const markerIcon = marker ? marker.querySelector("img") : null;
+  if (!posFill || !negFill || !marker || !markerIcon) return null;
+  return { posFill, negFill, marker, markerIcon };
+}
+
+// Spins the marker icon once around the z-axis. Used as an
+// acknowledgement cue when the marker's position doesn't otherwise
+// change, so the user still sees that their answer was registered.
+function playZeroPointsAcknowledgement(markerIcon) {
+  markerIcon.classList.remove("icon-marker-spin");
+  void markerIcon.offsetWidth; // force reflow so a repeat spin restarts cleanly
+  markerIcon.classList.add("icon-marker-spin");
+  markerIcon.addEventListener(
+    "animationend",
+    () => markerIcon.classList.remove("icon-marker-spin"),
+    { once: true }
+  );
 }
 
 function paint(els, pos) {
@@ -76,6 +91,11 @@ export function animateProgressBar(fromScore, toScore) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       paint(els, computePositions(toScore));
+      // 0 points acquired: the marker won't move, so spin it in place
+      // instead as visible confirmation the answer was scored.
+      if (fromScore === toScore) {
+        playZeroPointsAcknowledgement(els.markerIcon);
+      }
     });
   });
 }
@@ -86,7 +106,10 @@ export function applyProgressBar(score) {
 }
 
 // Plays once when the user successfully completes the level: spins the
-// top goal icon on its Y axis, then leaves it in a green "success" state.
+// top goal icon on its Y axis, then swaps in a green "success" version
+// of the icon and leaves the slot in its green "success" state.
+const LEVEL_COMPLETION_SUCCESS_SRC = "images/icon-level-completion-success.svg";
+
 export function playCompletionAnimation() {
   const icon = document.getElementById("level-completion-icon");
   const slot = document.getElementById("level-completion-slot");
@@ -98,6 +121,7 @@ export function playCompletionAnimation() {
     () => {
       icon.classList.remove("icon-spin");
       icon.classList.add("icon-success");
+      icon.src = LEVEL_COMPLETION_SUCCESS_SRC;
       if (slot) slot.classList.add("icon-success");
     },
     { once: true }

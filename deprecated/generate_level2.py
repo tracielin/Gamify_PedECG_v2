@@ -15,7 +15,7 @@ ECG_IMAGE_BLOCK = """<div class="ecg-panel">
 <p class="ecg-caption">Placeholder ECG strip - replace with a real strip image.</p>
 </div>"""
 
-SIDEBAR_HTML = """<div class="sidebar">
+SIDEBAR_PROGRESS_HTML = """<div class="sidebar sidebar-progress sidebar-right">
 <div class="sidebar-image-slot" id="level-completion-slot">
 <img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
@@ -37,7 +37,7 @@ SIDEBAR_HTML = """<div class="sidebar">
 </div>
 </div>"""
 
-SIDEBAR_RIGHT_HTML = """<div class="sidebar sidebar-right">
+SIDEBAR_TOOLBAR_HTML = """<div class="sidebar sidebar-toolbar sidebar-left">
 <button id="ref1-btn" class="btn secondary sidebar-ref-btn" type="button">Normal Ranges</button>
 <button id="ref2-btn" class="btn secondary sidebar-ref-btn" type="button">Rhythm Tips</button>
 <button id="signout-btn" class="btn secondary sidebar-signout" type="button">Sign out</button>
@@ -136,7 +136,7 @@ MC_QUESTION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card card-wide">
 <p class="score-display" id="score-display"></p>
@@ -162,7 +162,7 @@ MC_QUESTION_TEMPLATE = """<!DOCTYPE html>
 </div>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelStateFor, recordAnswerFor, explanationPageForLevel, auth, signOut }} from "./js/game.js";
@@ -208,7 +208,7 @@ MC_EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card card-wide">
 <p class="score-display" id="score-display"></p>
@@ -223,7 +223,7 @@ MC_EXPLANATION_TEMPLATE = """<!DOCTYPE html>
 </div>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelStateFor, determineNextDestinationFor, auth, signOut }} from "./js/game.js";
@@ -275,7 +275,7 @@ FREETEXT_QUESTION_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card card-wide">
 <p class="score-display" id="score-display"></p>
@@ -297,7 +297,7 @@ FREETEXT_QUESTION_TEMPLATE = """<!DOCTYPE html>
 </div>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelStateFor, auth, signOut }} from "./js/game.js";
@@ -345,7 +345,7 @@ GRADING_TEMPLATE = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-""" + SIDEBAR_HTML + """
+""" + SIDEBAR_PROGRESS_HTML + """
 <div class="content">
 <div class="card card-wide">
 <p class="score-display" id="score-display"></p>
@@ -369,7 +369,7 @@ GRADING_TEMPLATE = """<!DOCTYPE html>
 </div>
 </div>
 </div>
-""" + SIDEBAR_RIGHT_HTML + """
+""" + SIDEBAR_TOOLBAR_HTML + """
 """ + POPOVER_HTML + """
 <script type="module">
 import {{ requireAuth, getLevelStateFor, recordFreetextAnswerFor, determineNextDestinationFor, auth, signOut }} from "./js/game.js";

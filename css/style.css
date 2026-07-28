@@ -11,7 +11,18 @@ body {
   min-height: 100vh;
 }
 
-/* ---- Left-side fixed panel: progress bar + (future) metrics/menu ---- */
+/* ---- Fixed side panels (shared base) ----
+   Two independent panels sit on either side of `.content`:
+     - `.sidebar-toolbar`  (pause/reference buttons) - lives on the LEFT
+     - `.sidebar-progress` (level-completion icon + progress bar)
+                                                       - lives on the RIGHT
+   Which physical side each one renders on is controlled purely by the
+   `.sidebar-left` / `.sidebar-right` modifier classes below (via flex
+   `order`), so the pairing is explicit in the markup, e.g.:
+     <div class="sidebar sidebar-toolbar sidebar-left">
+     <div class="sidebar sidebar-progress sidebar-right">
+   Swapping sides in the future means swapping those two modifier
+   classes - no need to reorder anything in the HTML or JS. */
 
 .sidebar {
   flex: 0 0 140px;
@@ -21,18 +32,29 @@ body {
   top: 0;
   align-self: flex-start;
   background: #ffffff;
-  border-right: 1px solid #e1e3e8;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 24px 12px;
 }
 
+/* Position modifiers: control which physical side a `.sidebar` panel
+   renders on (via flex `order`) and which edge gets the divider line. */
+.sidebar-left {
+  order: -1;
+  border-right: 1px solid #e1e3e8;
+}
+
+.sidebar-right {
+  order: 1;
+  border-left: 1px solid #e1e3e8;
+}
+
 .sidebar-signout {
   width: 100%;
   font-size: 12px;
   padding: 20px 10px 8px;
-  margin-top: auto; /* push to the very bottom of the right sidebar */
+  margin-top: auto; /* push to the very bottom of the toolbar panel */
   border-top: 1px solid #e1e3e8;
   text-align: center;
 }
@@ -44,7 +66,7 @@ body {
   margin-top: auto;
 }
 
-/* "Pause game" button: pinned to the bottom of the right-hand toolbar,
+/* "Pause game" button: pinned to the bottom of the toolbar panel,
    clearly separated from the reference buttons above by a divider line
    plus generous top padding, even when there's a large gap between them.
    Pages that show this button don't also show a Sign out button. */
@@ -64,11 +86,10 @@ body {
   margin-top: auto;
 }
 
-/* Right-side panel: mirrors the left sidebar's size/position, but holds
-   reference-material buttons at top and Sign out pinned to the bottom. */
-.sidebar-right {
-  border-right: none;
-  border-left: 1px solid #e1e3e8;
+/* Toolbar panel: holds reference-material buttons at top and the
+   Pause/Sign out button pinned to the bottom. Buttons stretch to fill
+   the panel's width, unlike the centered progress panel. */
+.sidebar-toolbar {
   align-items: stretch;
 }
 
@@ -128,7 +149,7 @@ body {
 }
 
 .sidebar-image.icon-spin {
-  animation: rotateY-anim 0.6s linear 1;
+  animation: rotateY-anim 0.9s linear 1;
 }
 
 /* Track: flat/rectangular (no rounding) so the zero baseline reads as a
@@ -221,6 +242,19 @@ body {
   display: block;
 }
 
+/* Played once whenever an answer is worth 0 points: since the marker
+   doesn't move (no score change means no position change), spin it
+   in place on the z-axis so the user still gets confirmation that
+   their answer registered. */
+@keyframes rotateZ-anim {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.progress-marker img.icon-marker-spin {
+  animation: rotateZ-anim 0.6s ease-in-out 1;
+}
+
 .sidebar-section {
   margin-top: 28px;
   width: 100%;
@@ -233,7 +267,7 @@ body {
   line-height: 1.4;
 }
 
-/* ---- Main content area (everything to the right of the sidebar) ---- */
+/* ---- Main content area (between the two side panels) ---- */
 
 .content-welcome {
   flex: 1;
@@ -411,7 +445,7 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 .btn.disabled:hover,
 .btn:disabled:hover { background: #d1d5db; }
 
-/* ---- Reference-material popovers (triggered from the right sidebar) ---- */
+/* ---- Reference-material popovers (triggered from the toolbar panel) ---- */
 
 .popover-overlay {
   display: none;

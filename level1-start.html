@@ -32,7 +32,7 @@
 <h1>Pediatric ECG Challenge</h1>
 <p id="greeting">Loading...</p>
 <p style="font-size:14px;color:#6b7280;">You need 5 points to pass. You'll answer up to 6 questions; each correct answer earns 1-2 points depending on your confidence, and confidently wrong answers lose 2 points.</p>
-<button id="start-btn" class="btn">Start level</button>
+<button id="start-btn" class="btn">Begin Level 1</button>
 <a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
 </div>
@@ -56,7 +56,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, initLevelState, auth, signOut } from "./js/game.js";
+import { requireAuth, initLevelState, pickRandomFirstQuestion, auth, signOut } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 
@@ -72,7 +72,7 @@ requireAuth((user) => {
 
   document.getElementById("start-btn").addEventListener("click", async () => {
     await initLevelState(user.uid);
-    window.location.href = "level1-welcome.html";
+    window.location.href = pickRandomFirstQuestion();
   });
 });
 </script>

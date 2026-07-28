@@ -32,7 +32,7 @@
 <h1>Level 2: ECG Strip Interpretation</h1>
 <p id="greeting">Loading...</p>
 <p style="font-size:14px;color:#6b7280;">You need 5 points to pass. You'll answer up to 6 questions - some multiple choice, some free-text - about the ECG strip shown alongside each question. Free-text answers are graded with your confirmation, and your confidence rating is recorded for analysis but doesn't affect your score on those questions.</p>
-<button id="start-btn" class="btn">Start level</button>
+<button id="start-btn" class="btn">Begin Level 2</button>
 <a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
 </div>
@@ -56,7 +56,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, initLevelStateFor, auth, signOut } from "./js/game.js";
+import { requireAuth, initLevelStateFor, pickRandomFirstQuestionFor, auth, signOut } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 
@@ -80,7 +80,7 @@ requireAuth((user) => {
 
   document.getElementById("start-btn").addEventListener("click", async () => {
     await initLevelStateFor(user.uid, LEVEL_CONFIG.levelId);
-    window.location.href = "level2-welcome.html";
+    window.location.href = pickRandomFirstQuestionFor(LEVEL_CONFIG);
   });
 });
 </script>

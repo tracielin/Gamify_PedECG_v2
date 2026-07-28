@@ -28,6 +28,8 @@ function levelDocRef(uid) {
 
 // Resets/creates the per-user level progress document. Called when
 // starting the level for the first time and when retrying after a fail.
+// Uses merge:true so aggregate stats (timesCompleted, lastCompletedAt)
+// survive being reset for a fresh attempt.
 export async function initLevelState(uid) {
   const ref = levelDocRef(uid);
   const snap = await getDoc(ref);
@@ -37,8 +39,9 @@ export async function initLevelState(uid) {
     answeredQuestions: [],
     status: "in-progress",
     attempt,
-    updatedAt: serverTimestamp()
-  });
+    updatedAt: serverTimestamp(),
+    lastAttemptAt: serverTimestamp()
+  }, { merge: true });
   return ref;
 }
 
@@ -104,7 +107,12 @@ export async function determineNextDestination(uid) {
   const answered = data.answeredQuestions || [];
 
   if (score >= POINTS_TO_PASS) {
-    await updateDoc(ref, { status: "complete", completedAt: serverTimestamp() });
+    await updateDoc(ref, {
+      status: "complete",
+      completedAt: serverTimestamp(),
+      lastCompletedAt: serverTimestamp(),
+      timesCompleted: increment(1)
+    });
     return "complete.html";
   }
 
@@ -151,8 +159,9 @@ export async function initLevelStateFor(uid, levelId) {
     answeredQuestions: [],
     status: "in-progress",
     attempt,
-    updatedAt: serverTimestamp()
-  });
+    updatedAt: serverTimestamp(),
+    lastAttemptAt: serverTimestamp()
+  }, { merge: true });
   return ref;
 }
 
@@ -241,7 +250,12 @@ export async function determineNextDestinationFor(uid, config) {
   const answered = data.answeredQuestions || [];
 
   if (score >= pointsToPass) {
-    await updateDoc(ref, { status: "complete", completedAt: serverTimestamp() });
+    await updateDoc(ref, {
+      status: "complete",
+      completedAt: serverTimestamp(),
+      lastCompletedAt: serverTimestamp(),
+      timesCompleted: increment(1)
+    });
     return `${pagePrefix}complete.html`;
   }
 

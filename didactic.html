@@ -55,7 +55,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, initLevelState, auth, signOut } from "./js/game.js";
+import { requireAuth, getLevelState, initLevelState, pickRandomFirstQuestion, auth, signOut } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 
@@ -72,7 +72,7 @@ requireAuth(async (user) => {
 
   document.getElementById("retry-btn").addEventListener("click", async () => {
     await initLevelState(user.uid);
-    window.location.href = "level1-welcome.html";
+    window.location.href = pickRandomFirstQuestion();
   });
 });
 </script>

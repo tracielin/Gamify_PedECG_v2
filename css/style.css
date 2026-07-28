@@ -197,29 +197,6 @@ body {
 
 /* ---- Main content area (everything to the right of the sidebar) ---- */
 
-.content-welcome {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: 40px 16px;
-}
-.card-welcome {
-  display:flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #e1e3e8;
-  border-radius: 12px;
-  padding: 32px;
-  max-width: 560px;
-  min-height: 200px;
-  max-height: 250px;
-  width: 100%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
 .content {
   flex: 1;
   display: flex;
@@ -314,6 +291,63 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   border-radius: 8px;
   padding: 10px 14px;
 }
+
+/* ---- Main menu ---- */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header h1 { margin: 0; }
+
+.level-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.level-table th,
+.level-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid #e1e3e8;
+  vertical-align: top;
+}
+
+.level-table th {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.level-stats {
+  font-size: 13px;
+  color: #4a4f5a;
+  line-height: 1.7;
+}
+
+.btn:disabled,
+.btn.disabled {
+  background: #d1d5db;
+  color: #f3f4f6;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.btn.secondary.disabled,
+.btn.secondary:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #d1d5db;
+}
+
+.btn.disabled:hover,
+.btn:disabled:hover { background: #d1d5db; }
 
 /* ---- Reference-material popovers (triggered from the right sidebar) ---- */
 

@@ -7,23 +7,118 @@
 </head>
 <body>
 <div class="content">
-<div class="card">
+<div class="card card-wide">
+<div class="page-header">
 <h1 id="welcome-heading">Main menu</h1>
-<p>Choose a level to play.</p>
-<a href="level1-start.html" class="btn">Level 1: Pediatric ECG Challenge</a>
-<a href="level2-start.html" class="btn">Level 2: ECG Strip Interpretation</a>
 <button id="signout-btn" class="btn secondary">Sign out</button>
+</div>
+<p>Choose a level to play.</p>
+<table class="level-table">
+<thead>
+<tr>
+<th>Level</th>
+<th>Stats</th>
+<th>Start</th>
+<th>Resume</th>
+</tr>
+</thead>
+<tbody id="level-table-body">
+<tr><td colspan="4">Loading...</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 <script type="module">
-import { requireAuth, auth, signOut } from "./js/game.js";
+import {
+  requireAuth, auth, signOut,
+  getLevelState, determineNextDestination,
+  getLevelStateFor, determineNextDestinationFor
+} from "./js/game.js";
+
+const LEVELS = [
+  {
+    name: "Level 1: Pediatric ECG Challenge",
+    startPage: "level1-start.html",
+    getState: (uid) => getLevelState(uid),
+    resume: (uid) => determineNextDestination(uid),
+  },
+  {
+    name: "Level 2: ECG Strip Interpretation",
+    startPage: "level2-start.html",
+    getState: (uid) => getLevelStateFor(uid, "level2"),
+    resume: (uid) => determineNextDestinationFor(uid, {
+      levelId: "level2",
+      totalQuestions: 6,
+      pointsToPass: 5,
+      maxQuestions: 6,
+      pagePrefix: "level2-",
+    }),
+  },
+];
+
+function formatDate(ts) {
+  if (!ts) return "Never";
+  const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
 
 document.getElementById("signout-btn").addEventListener("click", () => {
   signOut(auth).then(() => { window.location.href = "index.html"; });
 });
 
-requireAuth((user) => {
+requireAuth(async (user) => {
   document.getElementById("welcome-heading").textContent = `Welcome, ${user.displayName || "player"}!`;
+
+  const tbody = document.getElementById("level-table-body");
+  tbody.innerHTML = "";
+
+  for (const level of LEVELS) {
+    const state = await level.getState(user.uid);
+    const timesCompleted = state?.timesCompleted || 0;
+    const lastCompletedAt = state?.lastCompletedAt || null;
+    const lastAttemptAt = state?.lastAttemptAt || null;
+    const canResume = state?.status === "in-progress";
+
+    const row = document.createElement("tr");
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = level.name;
+    row.appendChild(nameCell);
+
+    const statsCell = document.createElement("td");
+    statsCell.className = "level-stats";
+    statsCell.innerHTML =
+      `<div>Times completed: ${timesCompleted}</div>` +
+      `<div>Last completed: ${formatDate(lastCompletedAt)}</div>` +
+      `<div>Last attempt: ${formatDate(lastAttemptAt)}</div>`;
+    row.appendChild(statsCell);
+
+    const startCell = document.createElement("td");
+    const startLink = document.createElement("a");
+    startLink.href = level.startPage;
+    startLink.className = "btn";
+    startLink.textContent = "Start from beginning";
+    startCell.appendChild(startLink);
+    row.appendChild(startCell);
+
+    const resumeCell = document.createElement("td");
+    const resumeBtn = document.createElement("button");
+    resumeBtn.type = "button";
+    resumeBtn.textContent = "Resume paused game";
+    resumeBtn.className = "btn secondary" + (canResume ? "" : " disabled");
+    resumeBtn.disabled = !canResume;
+    if (canResume) {
+      resumeBtn.addEventListener("click", async () => {
+        resumeBtn.disabled = true;
+        const next = await level.resume(user.uid);
+        window.location.href = next;
+      });
+    }
+    resumeCell.appendChild(resumeBtn);
+    row.appendChild(resumeCell);
+
+    tbody.appendChild(row);
+  }
 });
 </script>
 </body>

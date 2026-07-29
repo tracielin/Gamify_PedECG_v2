@@ -1,0 +1,29 @@
+body {
+    background-image:url('../imgs/Scene_mountains_01_HiRes.png');
+    background-attachment:fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.content-welcome {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+}
+.card-welcome {
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e1e3e8;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 560px;
+  min-height: 200px;
+  max-height: 250px;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}

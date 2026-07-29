@@ -17,7 +17,7 @@ body {
   justify-content: center;
   text-align: center;
   align-items: center;
-  background-color: rgb(0 0 0 / 0.7);
+  background-color: rgb(255 255 255 / 0.6);
   color: black; /*for text to be solid even though background transparent*/
   border: 1px solid #e1e3e8;
   border-radius: 12px;

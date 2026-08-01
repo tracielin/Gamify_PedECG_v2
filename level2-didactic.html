@@ -66,7 +66,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelStateFor, initLevelStateFor, pickRandomFirstQuestionFor } from "./js/game.js";
+import { requireAuth, getLevelStateFor, initLevelStateFor, pickRandomFirstQuestionFor, markDidacticVisitedFor } from "./js/game.js";
 import { setProgressBar } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
@@ -84,6 +84,8 @@ setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 
 requireAuth(async (user) => {
+  await markDidacticVisitedFor(user.uid, LEVEL_CONFIG.levelId);
+
   const state = await getLevelStateFor(user.uid, LEVEL_CONFIG.levelId);
   const score = state ? state.score : 0;
   setProgressBar(score);

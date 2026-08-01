@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Correct! - Question 6</title>
+<title>Level 1 - Review material</title>
 <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
@@ -32,11 +32,14 @@
 </div>
 <div class="content">
 <div class="card">
-<p class="score-display" id="score-display"></p>
-<h2>Correct!</h2>
-<p class="correct-answer">Correct answer: Mobitz Type I (Wenckebach)</p>
-<p>Correct. Progressive PR prolongation culminating in a dropped beat, with the pattern then resetting, is the defining feature of Mobitz Type I (Wenckebach) second-degree AV block.</p>
-<button id="continue-btn" class="btn">Continue</button>
+<h1>Review material</h1>
+<p>This is a placeholder for the level's didactic/teaching content (key concepts, reference ranges, worked examples, etc). Replace this with your real teaching material.</p>
+<div class="actions-row">
+<button id="retry-btn" class="btn">Retry Level 1</button>
+</div>
+<div class="back-link-row">
+<a href="mainmenu.html" class="back-link"><span class="back-link-arrow">&larr;</span> Main menu</a>
+</div>
 </div>
 </div>
 <div class="sidebar sidebar-toolbar sidebar-left">
@@ -70,8 +73,8 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, animateProgressBar, setLives } from "./js/sidebar.js";
+import { requireAuth, getLevelState, initLevelState, pickRandomFirstQuestion, markDidacticVisited, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { setProgressBar, setLives } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
@@ -79,29 +82,19 @@ setupPauseModal(1);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 
-const SCORE_ANIM_KEY = "pedecgScoreAnim";
-
 requireAuth(async (user) => {
+  await markDidacticVisited(user.uid);
+
   const state = await getLevelState(user.uid);
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
-  document.getElementById("score-display").textContent =
-    state ? `Current score: ${score} / ${target} to pass` : "";
+  setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
 
-  const animRaw = sessionStorage.getItem(SCORE_ANIM_KEY);
-  if (animRaw) {
-    sessionStorage.removeItem(SCORE_ANIM_KEY);
-    const { from, to } = JSON.parse(animRaw);
-    animateProgressBar(from, to, target);
-  } else {
-    setProgressBar(score, target);
-  }
-
-  document.getElementById("continue-btn").addEventListener("click", async () => {
-    const next = await determineNextDestination(user.uid);
-    window.location.href = next;
+  document.getElementById("retry-btn").addEventListener("click", async () => {
+    await initLevelState(user.uid);
+    window.location.href = pickRandomFirstQuestion();
   });
 });
 </script>

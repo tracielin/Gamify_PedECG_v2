@@ -255,6 +255,70 @@ body {
   animation: rotateZ-anim 0.6s ease-in-out 1;
 }
 
+/* ---- Level 1: "simple" (zero-to-positive-only) progress bar ----
+   Used on Level 1 pages instead of the legacy two-tone track: no
+   negative/red region, no baseline - the fill simply grows from the
+   bottom of the track (score 0) up toward the points-to-pass target. */
+.progress-track-simple {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.progress-track-simple .progress-fill-positive {
+  width: 100%;
+  height: 0%;
+}
+
+/* Overrides the legacy `.progress-marker { top: 66.6667%; }` default so
+   the marker can be positioned from the bottom of the track instead. */
+.progress-track-simple .progress-marker {
+  top: auto !important;
+  bottom: 0%;
+  transition: bottom 0.4s ease;
+}
+
+.progress-track-simple .progress-marker.no-transition {
+  transition: none !important;
+}
+
+/* ---- Level 1: Lives (hearts) ---- */
+
+.lives-section {
+  margin-top: 14px;
+  width: 100%;
+  text-align: center;
+}
+
+.lives-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4f5a;
+}
+
+.lives-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.heart {
+  font-size: 16px;
+  line-height: 1;
+  color: #d1d5db; /* empty/lost heart */
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.heart.heart-filled {
+  color: #dc2626;
+}
+
+.heart.heart-lost {
+  color: #d1d5db;
+  transform: scale(0.9);
+}
+
 .sidebar-section {
   margin-top: 28px;
   width: 100%;
@@ -421,6 +485,67 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 
 .btn.disabled:hover,
 .btn:disabled:hover { background: #d1d5db; }
+
+/* ---- Centered action-button rows + "back to menu" link
+   (used on the failed and didactic pages) ---- */
+
+.actions-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions-row .btn {
+  margin: 4px;
+}
+
+.back-link-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 18px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.back-link .back-link-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ---- Main menu: "Resume Didactic" button (earthy brown) ---- */
+
+.btn.didactic {
+  background: #8a6240;
+  color: #ffffff;
+  border: 1px solid #8a6240;
+}
+
+.btn.didactic:hover { background: #6f4e33; }
+
+.btn.didactic.disabled,
+.btn.didactic:disabled {
+  background: #cbbba7;
+  color: #f3ede5;
+  border-color: #cbbba7;
+  cursor: not-allowed;
+}
+
+.btn.didactic.disabled:hover,
+.btn.didactic:disabled:hover { background: #cbbba7; }
 
 /* ---- Reference-material popovers (triggered from the toolbar panel) ---- */
 

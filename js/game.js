@@ -7,8 +7,8 @@ import {
 
 export const LEVEL_ID = "level1";
 export const TOTAL_QUESTIONS = 6;
-export const POINTS_TO_PASS = 5;
-export const MAX_QUESTIONS = 6;
+export const POINTS_TO_PASS = 5; // starting target; +1 for every wrong answer
+export const MAX_LIVES = 4;
 
 // Redirects to the login page if nobody is signed in; otherwise calls
 // onReady(user). Use this at the top of every page except index.html.
@@ -36,18 +36,31 @@ export async function initLevelState(uid) {
   const attempt = snap.exists() ? (snap.data().attempt || 0) + 1 : 1;
   await setDoc(ref, {
     score: 0,
+    lives: MAX_LIVES,
+    pointsToPass: POINTS_TO_PASS,
     answeredQuestions: [],
     status: "in-progress",
     attempt,
     updatedAt: serverTimestamp(),
     lastAttemptAt: serverTimestamp()
   }, { merge: true });
+  // Note: merge:true means fields not listed above (like visitedDidactic)
+  // survive a reset/retry untouched.
   return ref;
 }
 
 export async function getLevelState(uid) {
   const snap = await getDoc(levelDocRef(uid));
   return snap.exists() ? snap.data() : null;
+}
+
+// Marks that the user has opened Level 1's didactic/review page at least
+// once. Uses merge:true + setDoc so it works even if the user has never
+// started the level yet (no existing level doc). Drives the "Resume
+// Didactic" column on the main menu.
+export async function markDidacticVisited(uid) {
+  const ref = levelDocRef(uid);
+  await setDoc(ref, { visitedDidactic: true, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 // Scoring rule:
@@ -62,17 +75,35 @@ export function scoreDelta(isCorrect, confidence) {
   return -2;
 }
 
-// Records one answer: updates score, marks the question as answered,
-// and appends a history entry. Returns the point delta and new score.
+// Level 1 scoring rule (lives-based):
+//   correct + low confidence  = +1 point
+//   correct + high confidence = +2 points
+//   incorrect (any confidence) = 0 points, but costs 1 life and raises
+//     the points needed to pass the level by 1
+function livesAwareDelta(isCorrect, confidence) {
+  if (isCorrect) return confidence === "high" ? 2 : 1;
+  return 0;
+}
+
+// Records one answer: updates score/lives/pointsToPass, marks the
+// question as answered, and appends a history entry. Returns the point
+// delta, new score, new lives remaining, and new points-to-pass target.
 export async function recordAnswer(uid, questionId, isCorrect, confidence) {
   const ref = levelDocRef(uid);
-  const delta = scoreDelta(isCorrect, confidence);
+  const delta = livesAwareDelta(isCorrect, confidence);
+  const livesDelta = isCorrect ? 0 : -1;
+  const pointsToPassDelta = isCorrect ? 0 : 1;
+
   const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : { score: 0 };
+  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS };
   const newScore = (data.score || 0) + delta;
+  const newLives = Math.max(0, (typeof data.lives === "number" ? data.lives : MAX_LIVES) + livesDelta);
+  const newPointsToPass = (data.pointsToPass || POINTS_TO_PASS) + pointsToPassDelta;
 
   await updateDoc(ref, {
     score: increment(delta),
+    lives: increment(livesDelta),
+    pointsToPass: increment(pointsToPassDelta),
     answeredQuestions: arrayUnion(questionId),
     updatedAt: serverTimestamp()
   });
@@ -82,11 +113,14 @@ export async function recordAnswer(uid, questionId, isCorrect, confidence) {
     isCorrect,
     confidence,
     delta,
+    livesDelta,
     scoreAfter: newScore,
+    livesAfter: newLives,
+    pointsToPassAfter: newPointsToPass,
     timestamp: serverTimestamp()
   });
 
-  return { delta, newScore };
+  return { delta, newScore, newLives, newPointsToPass };
 }
 
 // Which of the 3 explanation pages to show for a given question/outcome.
@@ -104,9 +138,11 @@ export async function determineNextDestination(uid) {
   const snap = await getDoc(ref);
   const data = snap.data();
   const score = data.score || 0;
-  const answered = data.answeredQuestions || [];
+  const lives = typeof data.lives === "number" ? data.lives : MAX_LIVES;
+  const pointsToPass = data.pointsToPass || POINTS_TO_PASS;
+  let answered = data.answeredQuestions || [];
 
-  if (score >= POINTS_TO_PASS) {
+  if (score >= pointsToPass) {
     await updateDoc(ref, {
       status: "complete",
       completedAt: serverTimestamp(),
@@ -116,21 +152,40 @@ export async function determineNextDestination(uid) {
     return "complete.html";
   }
 
-  if (answered.length >= MAX_QUESTIONS) {
+  if (lives <= 0) {
     await updateDoc(ref, { status: "failed", failedAt: serverTimestamp() });
     await addDoc(collection(ref, "failures"), {
       finalScore: score,
+      pointsToPass,
       answeredQuestions: answered,
       timestamp: serverTimestamp()
     });
-    return "failed.html";
+    return "level1-failed.html";
   }
 
-  const remaining = [];
+  // The level no longer ends after a fixed number of questions - it only
+  // ends by reaching the (rising) points target or running out of lives.
+  // Once all 6 written questions have been used in this attempt, reshuffle:
+  // start a fresh cycle through all 6, avoiding an immediate repeat of the
+  // question the user just answered.
+  let remaining = [];
   for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
     if (!answered.includes(i)) remaining.push(i);
   }
-  const nextId = remaining[Math.floor(Math.random() * remaining.length)];
+  let excludeId = null;
+  if (remaining.length === 0) {
+    excludeId = answered[answered.length - 1];
+    answered = [];
+    await updateDoc(ref, { answeredQuestions: [] });
+    remaining = [];
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) remaining.push(i);
+  }
+
+  let pool = remaining;
+  if (excludeId != null && pool.length > 1) {
+    pool = pool.filter((id) => id !== excludeId);
+  }
+  const nextId = pool[Math.floor(Math.random() * pool.length)];
   return `level1-question${nextId}.html`;
 }
 
@@ -168,6 +223,12 @@ export async function initLevelStateFor(uid, levelId) {
 export async function getLevelStateFor(uid, levelId) {
   const snap = await getDoc(levelDocRefFor(uid, levelId));
   return snap.exists() ? snap.data() : null;
+}
+
+// Generic version of markDidacticVisited, for Level 2 and beyond.
+export async function markDidacticVisitedFor(uid, levelId) {
+  const ref = levelDocRefFor(uid, levelId);
+  await setDoc(ref, { visitedDidactic: true, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 // Records a multiple-choice answer, using the same confidence-weighted

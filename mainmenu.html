@@ -19,10 +19,11 @@
 <th>Level</th>
 <th>Start</th>
 <th>Resume</th>
+<th>Resume Didactic</th>
 </tr>
 </thead>
 <tbody id="level-table-body">
-<tr><td colspan="3">Loading...</td></tr>
+<tr><td colspan="4">Loading...</td></tr>
 </tbody>
 </table>
 </div>
@@ -38,12 +39,14 @@ const LEVELS = [
   {
     name: "Level 1: Pediatric ECG Challenge",
     startPage: "level1-start.html",
+    didacticPage: "level1-didactic.html",
     getState: (uid) => getLevelState(uid),
     resume: (uid) => determineNextDestination(uid),
   },
   {
     name: "Level 2: ECG Strip Interpretation",
     startPage: "level2-start.html",
+    didacticPage: "level2-didactic.html",
     getState: (uid) => getLevelStateFor(uid, "level2"),
     resume: (uid) => determineNextDestinationFor(uid, {
       levelId: "level2",
@@ -113,6 +116,21 @@ requireAuth(async (user) => {
     }
     resumeCell.appendChild(resumeBtn);
     row.appendChild(resumeCell);
+
+    const didacticCell = document.createElement("td");
+    const didacticBtn = document.createElement("a");
+    const visitedDidactic = !!state?.visitedDidactic;
+    didacticBtn.textContent = "Resume Didactic";
+    didacticBtn.className = "btn didactic" + (visitedDidactic ? "" : " disabled");
+    if (visitedDidactic) {
+      didacticBtn.href = level.didacticPage;
+    } else {
+      didacticBtn.href = "#";
+      didacticBtn.setAttribute("aria-disabled", "true");
+      didacticBtn.addEventListener("click", (e) => e.preventDefault());
+    }
+    didacticCell.appendChild(didacticBtn);
+    row.appendChild(didacticCell);
 
     tbody.appendChild(row);
   }

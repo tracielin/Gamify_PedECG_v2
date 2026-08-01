@@ -1,33 +1,54 @@
-// Vertical sidebar progress bar, anchored to a zero baseline that sits
-// 2/3 of the way down the track (2/3 of the track is positive/green
-// territory above it, 1/3 is negative/red territory below it).
-//   score > 0: green fill grows UPWARD from the baseline
-//   score < 0: red fill grows DOWNWARD from the baseline
-//   score = 0: no fill, marker sits right on the baseline
-// The marker icon always sits at the current leading edge (tip) of the
-// fill, so it visibly moves up or down as the score changes.
-const POINTS_TO_PASS = 5;
-const POS_REGION_PCT = 200 / 3; // 66.6667% - track space above the baseline
-const NEG_REGION_PCT = 100 / 3; // 33.3333% - track space below the baseline
+import { MAX_LIVES, POINTS_TO_PASS as DEFAULT_POINTS_TO_PASS } from "./game.js";
 
-function computePositions(score) {
-  const halfPct = Math.min(Math.abs(score) / POINTS_TO_PASS, 1) * 100;
+// ---------------------------------------------------------------------
+// Progress bar
+//
+// Two markup/behavior modes are supported, auto-detected from the DOM:
+//
+//  - "simple" mode (Level 1): the track has no negative/red half - a
+//    score of 0 sits at the very bottom and the fill grows straight up
+//    toward the (possibly-rising) points-to-pass target. Used on pages
+//    whose markup has a `.progress-track-simple` track and no
+//    `#progress-fill-negative` element.
+//
+//  - "legacy" two-tone mode (Level 2 and any future level still using
+//    the original markup): a fixed zero baseline sits 2/3 of the way
+//    down the track, green fill grows up for positive scores, red fill
+//    grows down for negative scores. Unchanged from the original
+//    behavior so Level 2 is unaffected by the Level 1 redesign.
+// ---------------------------------------------------------------------
+
+const LEGACY_POINTS_TO_PASS = 5;
+const LEGACY_POS_REGION_PCT = 200 / 3; // 66.6667% - track space above the baseline
+const LEGACY_NEG_REGION_PCT = 100 / 3; // 33.3333% - track space below the baseline
+
+function computeLegacyPositions(score) {
+  const halfPct = Math.min(Math.abs(score) / LEGACY_POINTS_TO_PASS, 1) * 100;
 
   if (score > 0) {
     return {
       posHeight: halfPct,
       negHeight: 0,
-      markerTop: POS_REGION_PCT - (halfPct / 100) * POS_REGION_PCT,
+      markerTop: LEGACY_POS_REGION_PCT - (halfPct / 100) * LEGACY_POS_REGION_PCT,
     };
   }
   if (score < 0) {
     return {
       posHeight: 0,
       negHeight: halfPct,
-      markerTop: POS_REGION_PCT + (halfPct / 100) * NEG_REGION_PCT,
+      markerTop: LEGACY_POS_REGION_PCT + (halfPct / 100) * LEGACY_NEG_REGION_PCT,
     };
   }
-  return { posHeight: 0, negHeight: 0, markerTop: POS_REGION_PCT };
+  return { posHeight: 0, negHeight: 0, markerTop: LEGACY_POS_REGION_PCT };
+}
+
+// Simple mode: score is always >= 0 (wrong answers cost a life, not
+// points), so the whole track maps 0..target onto 0%..100% fill height,
+// with the marker riding the top edge of the fill.
+function computeSimplePositions(score, target) {
+  const t = target && target > 0 ? target : DEFAULT_POINTS_TO_PASS;
+  const pct = Math.min(Math.max(score, 0) / t, 1) * 100;
+  return { fillHeight: pct, markerBottom: pct };
 }
 
 function getElements() {
@@ -35,8 +56,8 @@ function getElements() {
   const negFill = document.getElementById("progress-fill-negative");
   const marker = document.getElementById("progress-marker");
   const markerIcon = marker ? marker.querySelector("img") : null;
-  if (!posFill || !negFill || !marker || !markerIcon) return null;
-  return { posFill, negFill, marker, markerIcon };
+  if (!posFill || !marker || !markerIcon) return null;
+  return { posFill, negFill, marker, markerIcon, isSimple: !negFill };
 }
 
 // Spins the marker icon once around the z-axis. Used as an
@@ -53,44 +74,53 @@ function playZeroPointsAcknowledgement(markerIcon) {
   );
 }
 
-function paint(els, pos) {
-  els.posFill.style.height = pos.posHeight + "%";
-  els.negFill.style.height = pos.negHeight + "%";
-  els.marker.style.top = pos.markerTop + "%";
+function paint(els, score, target) {
+  if (els.isSimple) {
+    const pos = computeSimplePositions(score, target);
+    els.posFill.style.height = pos.fillHeight + "%";
+    els.marker.style.bottom = pos.markerBottom + "%";
+  } else {
+    const pos = computeLegacyPositions(score);
+    els.posFill.style.height = pos.posHeight + "%";
+    els.negFill.style.height = pos.negHeight + "%";
+    els.marker.style.top = pos.markerTop + "%";
+  }
 }
 
 function withoutTransition(els, fn) {
   els.posFill.classList.add("no-transition");
-  els.negFill.classList.add("no-transition");
+  if (els.negFill) els.negFill.classList.add("no-transition");
   els.marker.classList.add("no-transition");
   fn();
   void els.posFill.offsetHeight; // force reflow so the change applies instantly
   els.posFill.classList.remove("no-transition");
-  els.negFill.classList.remove("no-transition");
+  if (els.negFill) els.negFill.classList.remove("no-transition");
   els.marker.classList.remove("no-transition");
 }
 
 // Sets the bar to reflect `score` immediately, with no animation. Use
 // whenever the displayed score hasn't actually changed since the user
 // last saw it (e.g. arriving at complete/failed/next-question pages).
-export function setProgressBar(score) {
+// `target` (simple mode only) is the current points-to-pass goal; it
+// defaults to the level's starting target if omitted.
+export function setProgressBar(score, target) {
   const els = getElements();
   if (!els) return;
-  withoutTransition(els, () => paint(els, computePositions(score)));
+  withoutTransition(els, () => paint(els, score, target));
 }
 
 // Animates the bar from `fromScore` to `toScore`, so the fill visibly
 // grows or shrinks starting from wherever it already was, rather than
 // resetting to the baseline first. Use right after an answer is scored.
-export function animateProgressBar(fromScore, toScore) {
+export function animateProgressBar(fromScore, toScore, target) {
   const els = getElements();
   if (!els) return;
 
-  withoutTransition(els, () => paint(els, computePositions(fromScore)));
+  withoutTransition(els, () => paint(els, fromScore, target));
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      paint(els, computePositions(toScore));
+      paint(els, toScore, target);
       // 0 points acquired: the marker won't move, so spin it in place
       // instead as visible confirmation the answer was scored.
       if (fromScore === toScore) {
@@ -101,8 +131,31 @@ export function animateProgressBar(fromScore, toScore) {
 }
 
 // Convenience alias for "just show the current score, no animation".
-export function applyProgressBar(score) {
-  setProgressBar(score);
+export function applyProgressBar(score, target) {
+  setProgressBar(score, target);
+}
+
+// ---------------------------------------------------------------------
+// Lives (hearts)
+// ---------------------------------------------------------------------
+
+// Fills in / grays out the heart icons under the "Lives:" label to
+// reflect how many lives remain. No-ops on pages without a lives
+// display (e.g. Level 2 pages, which don't use the lives system).
+export function setLives(lives, maxLives = MAX_LIVES) {
+  const container = document.getElementById("lives-hearts");
+  if (!container) return;
+  const hearts = container.querySelectorAll(".heart");
+  const remaining = Math.max(0, Math.min(lives, maxLives));
+  hearts.forEach((heart, index) => {
+    if (index < remaining) {
+      heart.classList.add("heart-filled");
+      heart.classList.remove("heart-lost");
+    } else {
+      heart.classList.remove("heart-filled");
+      heart.classList.add("heart-lost");
+    }
+  });
 }
 
 // Plays once when the user successfully completes the level: spins the

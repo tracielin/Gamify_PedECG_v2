@@ -164,6 +164,8 @@ export function setLives(lives, maxLives = MAX_LIVES) {
   if (!container) return;
   const hearts = container.querySelectorAll(".heart");
   const remaining = Math.max(0, Math.min(lives, maxLives));
+  const countEl = document.getElementById("lives-count");
+  if (countEl) countEl.textContent = remaining;
   hearts.forEach((heart, index) => {
     if (index < remaining) {
       heart.classList.add("heart-filled");

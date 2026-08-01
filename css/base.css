@@ -115,7 +115,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn.secondary.sidebar-ref-btn:hover {
-  background: #675544;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(65, 43, 21, 0.4);
+}
+
+.btn.secondary.sidebar-pause:hover {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
 }
 
 .progress-label {
@@ -244,7 +250,11 @@ h1, h2, h3, h4, h5, h6 {
 .progress-track-simple .progress-marker {
   top: auto;
   bottom: 0%;
-  transform: translateX(-50%);
+  /* translateX centers the marker horizontally as before; translateY(50%)
+     shifts it down by half its own height so its CENTER - not its bottom
+     edge - lands on the `bottom` position (the leading edge of the fill,
+     or the very bottom of the track when the fill is at 0%). */
+  transform: translate(-50%, 50%);
   transition: bottom 0.4s ease;
 }
 
@@ -265,6 +275,11 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 12px;
   font-weight: 600;
   color: #4a4f5a;
+}
+
+.lives-count {
+  font-weight: 700;
+  color: #1f2430;
 }
 
 .lives-hearts {
@@ -300,11 +315,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 14px;
   margin-bottom: 14px;
   width: 100%;
-  text-align: center;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
 }
 
 .mets-label {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 12px;
   font-weight: 600;
   color: #4a4f5a;

@@ -10,19 +10,22 @@
 <div class="sidebar-image-slot" id="level-completion-slot">
 <img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
-<div class="progress-track">
-<div class="progress-half progress-half-positive">
+<div class="progress-track progress-track-simple">
 <div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
-</div>
-<div class="progress-baseline"></div>
-<div class="progress-half progress-half-negative">
-<div class="progress-fill progress-fill-negative" id="progress-fill-negative"></div>
-</div>
 <div class="progress-marker" id="progress-marker">
 <img src="images/icon-character-progress-marker.svg" alt="Progress character">
 </div>
 </div>
 <p class="progress-label">Level 2 Progress</p>
+<div class="lives-section">
+<p class="lives-label">Lives:</p>
+<div class="lives-hearts" id="lives-hearts">
+<span class="heart" data-index="0">&#9829;</span>
+<span class="heart" data-index="1">&#9829;</span>
+<span class="heart" data-index="2">&#9829;</span>
+<span class="heart" data-index="3">&#9829;</span>
+</div>
+</div>
 <div class="sidebar-section sidebar-placeholder">
 <p>More metrics &amp; menu coming soon</p>
 </div>
@@ -82,8 +85,8 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelStateFor } from "./js/game.js";
-import { setProgressBar } from "./js/sidebar.js";
+import { requireAuth, getLevelStateFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { setProgressBar, setLives, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 import { gradeFreetext } from "./js/freetext-grading.js";
@@ -91,6 +94,10 @@ import { gradeFreetext } from "./js/freetext-grading.js";
 setupPauseModal(2);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
+
+// Paint the sidebar from last known state immediately, before waiting on
+// auth/Firestore, so it never flashes back to empty on navigation.
+paintSidebarCache("level2");
 
 const LEVEL_ID = "level2";
 const QUESTION_ID = 5;
@@ -101,9 +108,13 @@ const FREETEXT_KEY = "pedecgFreetextLevel2";
 requireAuth(async (user) => {
   const state = await getLevelStateFor(user.uid, LEVEL_ID);
   const score = state ? state.score : 0;
+  const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
+  const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
   document.getElementById("score-display").textContent =
-    state ? `Current score: ${state.score}` : "";
-  setProgressBar(score);
+    state ? `Current score: ${score} / ${target} to pass` : "";
+  writeSidebarCache("level2", { score, target, lives, maxLives: MAX_LIVES });
+  setProgressBar(score, target);
+  setLives(lives, MAX_LIVES);
 
   document.getElementById("answer-form").addEventListener("submit", (e) => {
     e.preventDefault();

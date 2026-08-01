@@ -282,7 +282,7 @@ body {
   transition: none !important;
 }
 
-/* ---- Level 1: Lives (hearts) ---- */
+/* ---- Lives (hearts) - used by any level with a lives system ---- */
 
 .lives-section {
   margin-top: 14px;

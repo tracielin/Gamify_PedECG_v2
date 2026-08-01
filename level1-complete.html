@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Question 1</title>
+<title>Level complete</title>
 <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
@@ -32,22 +32,10 @@
 </div>
 <div class="content">
 <div class="card">
-<p class="score-display" id="score-display"></p>
-<h2>Question</h2>
-<p>A 4-year-old patient's ECG shows a heart rate of 150 bpm with a normal P wave before every QRS complex. What is the most likely rhythm?</p>
-<form id="answer-form">
-<div class="choices">
-<label><input type="radio" name="choice" value="0" required> Normal sinus rhythm for this age</label>
-<label><input type="radio" name="choice" value="1"> Supraventricular tachycardia (SVT)</label>
-<label><input type="radio" name="choice" value="2"> Sinus bradycardia</label>
-</div>
-<h3>How confident are you in this answer?</h3>
-<div class="choices choices-horizontal">
-<label><input type="radio" name="confidence" value="low" required> Low confidence</label>
-<label><input type="radio" name="confidence" value="high"> High confidence</label>
-</div>
-<button type="submit" class="btn">Submit answer</button>
-</form>
+<h1>Level complete!</h1>
+<p id="final-score" class="correct-answer"></p>
+<p>Nice work - you reached the points needed to pass this level.</p>
+<a href="mainmenu.html" class="btn">Back to main menu</a>
 </div>
 </div>
 <div class="sidebar sidebar-toolbar sidebar-left">
@@ -81,8 +69,8 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, recordAnswer, explanationPageFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, setLives, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import { requireAuth, getLevelState, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { setProgressBar, setLives, playCompletionAnimation, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
@@ -94,30 +82,17 @@ setupPopover("ref2-btn", "ref2-overlay");
 // auth/Firestore, so it never flashes back to empty on navigation.
 paintSidebarCache("level1");
 
-const QUESTION_ID = 1;
-const CORRECT_INDEX = 0;
-const SCORE_ANIM_KEY = "pedecgScoreAnim";
-
 requireAuth(async (user) => {
   const state = await getLevelState(user.uid);
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
-  document.getElementById("score-display").textContent =
-    state ? `Current score: ${score} / ${target} to pass` : "";
+  document.getElementById("final-score").textContent =
+    state ? `Final score: ${state.score} points` : "";
   writeSidebarCache("level1", { score, target, lives, maxLives: MAX_LIVES });
   setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
-
-  document.getElementById("answer-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const choice = parseInt(document.querySelector('input[name="choice"]:checked').value, 10);
-    const confidence = document.querySelector('input[name="confidence"]:checked').value;
-    const isCorrect = choice === CORRECT_INDEX;
-    const { delta, newScore } = await recordAnswer(user.uid, QUESTION_ID, isCorrect, confidence);
-    sessionStorage.setItem(SCORE_ANIM_KEY, JSON.stringify({ from: newScore - delta, to: newScore }));
-    window.location.href = explanationPageFor(QUESTION_ID, isCorrect, confidence);
-  });
+  playCompletionAnimation();
 });
 </script>
 </body>

@@ -149,7 +149,7 @@ export async function determineNextDestination(uid) {
       lastCompletedAt: serverTimestamp(),
       timesCompleted: increment(1)
     });
-    return "complete.html";
+    return "level1-complete.html";
   }
 
   if (lives <= 0) {
@@ -205,18 +205,26 @@ function levelDocRefFor(uid, levelId) {
   return doc(db, "users", uid, "levels", levelId);
 }
 
-export async function initLevelStateFor(uid, levelId) {
+// `config.useLives` opts a level into the lives system (lives + a rising
+// pointsToPass target), the same rules Level 1 uses. Omit it (or leave it
+// false) for levels that just track a plain score.
+export async function initLevelStateFor(uid, levelId, config = {}) {
   const ref = levelDocRefFor(uid, levelId);
   const snap = await getDoc(ref);
   const attempt = snap.exists() ? (snap.data().attempt || 0) + 1 : 1;
-  await setDoc(ref, {
+  const data = {
     score: 0,
     answeredQuestions: [],
     status: "in-progress",
     attempt,
     updatedAt: serverTimestamp(),
     lastAttemptAt: serverTimestamp()
-  }, { merge: true });
+  };
+  if (config.useLives) {
+    data.lives = config.maxLives || MAX_LIVES;
+    data.pointsToPass = config.pointsToPass || POINTS_TO_PASS;
+  }
+  await setDoc(ref, data, { merge: true });
   return ref;
 }
 
@@ -231,20 +239,41 @@ export async function markDidacticVisitedFor(uid, levelId) {
   await setDoc(ref, { visitedDidactic: true, updatedAt: serverTimestamp() }, { merge: true });
 }
 
-// Records a multiple-choice answer, using the same confidence-weighted
-// scoring rule as Level 1 (scoreDelta above).
-export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confidence) {
+// Records a multiple-choice answer.
+//
+// By default this uses the plain confidence-weighted scoring rule
+// (scoreDelta above), where a wrong answer can subtract points.
+//
+// Pass `{ useLives: true }` to instead use Level 1's lives-aware rule
+// (livesAwareDelta above): a wrong answer costs 0 points but costs 1
+// life and raises the level's pointsToPass target by 1, rather than
+// subtracting from the score.
+export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confidence, config = {}) {
   const ref = levelDocRefFor(uid, levelId);
-  const delta = scoreDelta(isCorrect, confidence);
+  const useLives = !!config.useLives;
+  const delta = useLives ? livesAwareDelta(isCorrect, confidence) : scoreDelta(isCorrect, confidence);
+  const livesDelta = useLives && !isCorrect ? -1 : 0;
+  const pointsToPassDelta = useLives && !isCorrect ? 1 : 0;
+
   const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : { score: 0 };
+  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS };
   const newScore = (data.score || 0) + delta;
 
-  await updateDoc(ref, {
+  const updatePayload = {
     score: increment(delta),
     answeredQuestions: arrayUnion(questionId),
     updatedAt: serverTimestamp()
-  });
+  };
+
+  let newLives, newPointsToPass;
+  if (useLives) {
+    newLives = Math.max(0, (typeof data.lives === "number" ? data.lives : MAX_LIVES) + livesDelta);
+    newPointsToPass = (data.pointsToPass || POINTS_TO_PASS) + pointsToPassDelta;
+    updatePayload.lives = increment(livesDelta);
+    updatePayload.pointsToPass = increment(pointsToPassDelta);
+  }
+
+  await updateDoc(ref, updatePayload);
 
   await addDoc(collection(ref, "history"), {
     questionId,
@@ -253,10 +282,11 @@ export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confi
     confidence,
     delta,
     scoreAfter: newScore,
+    ...(useLives ? { livesDelta, livesAfter: newLives, pointsToPassAfter: newPointsToPass } : {}),
     timestamp: serverTimestamp()
   });
 
-  return { delta, newScore };
+  return useLives ? { delta, newScore, newLives, newPointsToPass } : { delta, newScore };
 }
 
 // Records a free-text answer. Unlike MC scoring, the point value (delta)
@@ -301,13 +331,21 @@ export function explanationPageForLevel(pagePrefix, questionId, isCorrect, confi
 
 // Generic completion/failure check + next-question picker, parameterized
 // per level. config: { levelId, totalQuestions, pointsToPass,
-// maxQuestions, pagePrefix }
+// maxQuestions, pagePrefix, useLives, maxLives }
+//
+// When config.useLives is set, pointsToPass is read from Firestore (it
+// rises by 1 each time a wrong MC answer is recorded via recordAnswerFor)
+// rather than taken as the fixed config value, and running out of lives
+// is checked as an additional failure condition alongside the
+// maxQuestions cap.
 export async function determineNextDestinationFor(uid, config) {
-  const { levelId, totalQuestions, pointsToPass, maxQuestions, pagePrefix } = config;
+  const { levelId, totalQuestions, maxQuestions, pagePrefix, useLives, maxLives } = config;
   const ref = levelDocRefFor(uid, levelId);
   const snap = await getDoc(ref);
   const data = snap.data();
   const score = data.score || 0;
+  const pointsToPass = useLives ? (data.pointsToPass || config.pointsToPass) : config.pointsToPass;
+  const lives = useLives ? (typeof data.lives === "number" ? data.lives : (maxLives || MAX_LIVES)) : null;
   const answered = data.answeredQuestions || [];
 
   if (score >= pointsToPass) {
@@ -320,10 +358,11 @@ export async function determineNextDestinationFor(uid, config) {
     return `${pagePrefix}complete.html`;
   }
 
-  if (answered.length >= maxQuestions) {
+  if ((useLives && lives <= 0) || answered.length >= maxQuestions) {
     await updateDoc(ref, { status: "failed", failedAt: serverTimestamp() });
     await addDoc(collection(ref, "failures"), {
       finalScore: score,
+      pointsToPass,
       answeredQuestions: answered,
       timestamp: serverTimestamp()
     });

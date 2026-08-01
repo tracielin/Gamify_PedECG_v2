@@ -71,7 +71,7 @@
 </div>
 <script type="module">
 import { requireAuth, initLevelState, pickRandomFirstQuestion, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, setLives } from "./js/sidebar.js";
+import { setProgressBar, setLives, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
@@ -80,6 +80,7 @@ setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 setProgressBar(0, POINTS_TO_PASS);
 setLives(MAX_LIVES, MAX_LIVES);
+writeSidebarCache("level1", { score: 0, target: POINTS_TO_PASS, lives: MAX_LIVES, maxLives: MAX_LIVES });
 
 requireAuth((user) => {
   document.getElementById("greeting").textContent = `Welcome, ${user.displayName || "player"}! Ready to start?`;

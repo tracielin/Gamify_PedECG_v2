@@ -136,6 +136,65 @@ export function applyProgressBar(score, target) {
 }
 
 // ---------------------------------------------------------------------
+// Cross-page sidebar cache
+//
+// Every page is a full navigation/reload, so the sidebar's real values
+// (score, target, lives) are only known once Firebase auth + a Firestore
+// fetch resolve. Without help, that means every page load starts from
+// the sidebar's empty default (0% fill, grey hearts) and then jumps to
+// the truth a beat later - a visible "flash".
+//
+// To avoid that, each page caches its own known-good values in
+// sessionStorage right after fetching them (writeSidebarCache), and the
+// *next* page paints that cached snapshot immediately at parse time,
+// before requireAuth/Firestore even resolve (paintSidebarCache). Score
+// and target are always cached together as one snapshot, so a rising
+// points-to-pass target (e.g. after a wrong answer) never gets paired
+// with a stale target - the percentage painted is always internally
+// consistent for the moment it was captured.
+// ---------------------------------------------------------------------
+
+const SIDEBAR_CACHE_PREFIX = "pedecgSidebarCache:";
+
+// Persists the current score/target/lives for `levelKey` (e.g. "level1",
+// "level2") so the next page that loads for this level can paint
+// instantly. Call this right after computing real values from Firestore.
+export function writeSidebarCache(levelKey, { score, target, lives, maxLives } = {}) {
+  try {
+    sessionStorage.setItem(
+      SIDEBAR_CACHE_PREFIX + levelKey,
+      JSON.stringify({ score, target, lives, maxLives })
+    );
+  } catch (err) {
+    // sessionStorage unavailable (e.g. private browsing) - just skip caching.
+  }
+}
+
+function readSidebarCache(levelKey) {
+  try {
+    const raw = sessionStorage.getItem(SIDEBAR_CACHE_PREFIX + levelKey);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+// Paints the cached snapshot for `levelKey`, if any, with no animation.
+// Call this synchronously at the very top of a page's script - before
+// requireAuth - so returning players never see the bar/hearts reset to
+// empty first. Returns the cached snapshot (or null if there wasn't one,
+// e.g. the very first page of a session).
+export function paintSidebarCache(levelKey) {
+  const cached = readSidebarCache(levelKey);
+  if (!cached) return null;
+  setProgressBar(cached.score, cached.target);
+  if (typeof cached.lives === "number") {
+    setLives(cached.lives, cached.maxLives || MAX_LIVES);
+  }
+  return cached;
+}
+
+// ---------------------------------------------------------------------
 // Lives (hearts)
 // ---------------------------------------------------------------------
 

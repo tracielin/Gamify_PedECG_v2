@@ -19,10 +19,10 @@ users (Firebase Auth).
   didactic explanation.
 - **Completion check**: happens after every single answer, not just at a
   fixed question count. As soon as score >= 5, the user is sent to
-  `complete.html`, even if that happens on question 2 or 3. If the user
-  reaches 6 answered questions without hitting 5 points, they're sent to
-  `failed.html` and the failure is recorded in Firestore.
-- **Retry**: `failed.html` lets the user retry (resets score/progress and
+  `level1-complete.html`, even if that happens on question 2 or 3. If the
+  user reaches 6 answered questions without hitting 5 points, they're
+  sent to `level1-failed.html` and the failure is recorded in Firestore.
+- **Retry**: `level1-failed.html` lets the user retry (resets score/progress and
   starts a fresh random question order), view a didactic explanation page,
   or return to the main menu.
 

@@ -71,13 +71,17 @@
 </div>
 <script type="module">
 import { requireAuth, getLevelState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, animateProgressBar, setLives } from "./js/sidebar.js";
+import { setProgressBar, animateProgressBar, setLives, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
 setupPauseModal(1);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
+
+// Paint the sidebar from last known state immediately, before waiting on
+// auth/Firestore, so it never flashes back to empty on navigation.
+paintSidebarCache("level1");
 
 const SCORE_ANIM_KEY = "pedecgScoreAnim";
 
@@ -88,6 +92,7 @@ requireAuth(async (user) => {
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${score} / ${target} to pass` : "";
+  writeSidebarCache("level1", { score, target, lives, maxLives: MAX_LIVES });
   setLives(lives, MAX_LIVES);
 
   const animRaw = sessionStorage.getItem(SCORE_ANIM_KEY);

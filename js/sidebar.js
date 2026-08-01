@@ -114,11 +114,11 @@ const SIDEBAR_CACHE_PREFIX = "pedecgSidebarCache:";
 // Persists the current score/target/lives for `levelKey` (e.g. "level1",
 // "level2") so the next page that loads for this level can paint
 // instantly. Call this right after computing real values from Firestore.
-export function writeSidebarCache(levelKey, { score, target, lives, maxLives } = {}) {
+export function writeSidebarCache(levelKey, { score, target, lives, maxLives, mets } = {}) {
   try {
     sessionStorage.setItem(
       SIDEBAR_CACHE_PREFIX + levelKey,
-      JSON.stringify({ score, target, lives, maxLives })
+      JSON.stringify({ score, target, lives, maxLives, mets })
     );
   } catch (err) {
     // sessionStorage unavailable (e.g. private browsing) - just skip caching.
@@ -146,6 +146,9 @@ export function paintSidebarCache(levelKey) {
   if (typeof cached.lives === "number") {
     setLives(cached.lives, cached.maxLives || MAX_LIVES);
   }
+  if (typeof cached.mets === "number") {
+    setMets(cached.mets);
+  }
   return cached;
 }
 
@@ -170,6 +173,75 @@ export function setLives(lives, maxLives = MAX_LIVES) {
       heart.classList.add("heart-lost");
     }
   });
+}
+
+// ---------------------------------------------------------------------
+// METs
+// ---------------------------------------------------------------------
+
+// Updates the "METs:" number shown above the progress bar. No-ops on
+// pages without a METs display.
+export function setMets(mets) {
+  const el = document.getElementById("mets-value");
+  if (!el) return;
+  el.textContent = typeof mets === "number" ? mets : 0;
+}
+
+// ---------------------------------------------------------------------
+// Level-completion Stats section (METs interpretation + 2x2/3x2 matrix)
+// ---------------------------------------------------------------------
+
+const MATRIX_LABELS = {
+  correct: {
+    high: "Master/Bullseye (Knew it and nailed it)",
+    low: "Hidden Genius (More capable than you might think)"
+  },
+  partial: {
+    high: "Rough gems / Refinement in progress",
+    low: "Halfway there (gaining traction)"
+  },
+  incorrect: {
+    high: "Blind Spots (Overconfident, needs review)",
+    low: "Learning Zone"
+  }
+};
+
+const ROW_HEADINGS = {
+  correct: "Correct",
+  partial: "Partially correct",
+  incorrect: "Incorrect"
+};
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Renders the correctness x confidence stats matrix into `container`
+// (a DOM element). `tally` is the object returned by tallyAnswerEntries
+// in game.js. Pass `{ hasPartial: true }` for levels with freetext
+// questions (which can be graded as "partially correct") to include the
+// extra middle row.
+export function renderStatsMatrix(container, tally, { hasPartial = false } = {}) {
+  if (!container) return;
+  const rows = hasPartial ? ["correct", "partial", "incorrect"] : ["correct", "incorrect"];
+
+  let html = '<table class="stats-matrix">';
+  html += '<thead><tr><th></th><th>High confidence</th><th>Low confidence</th></tr></thead><tbody>';
+  rows.forEach((row) => {
+    html += `<tr><th>${ROW_HEADINGS[row]}</th>`;
+    ["high", "low"].forEach((col) => {
+      const count = (tally[row] && tally[row][col]) || 0;
+      const label = MATRIX_LABELS[row][col];
+      html += `<td class="matrix-cell"><div class="matrix-count">${count}</div>` +
+        `<div class="matrix-label">${escapeHtml(label)}</div></td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</tbody></table>";
+  container.innerHTML = html;
 }
 
 // Plays once when the user successfully completes the level: spins the

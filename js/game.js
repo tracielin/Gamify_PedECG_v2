@@ -2,7 +2,7 @@ import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
   doc, getDoc, setDoc, updateDoc, increment, arrayUnion,
-  serverTimestamp, collection, addDoc
+  serverTimestamp, collection, addDoc, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 export const LEVEL_ID = "level1";
@@ -38,6 +38,7 @@ export async function initLevelState(uid) {
     score: 0,
     lives: MAX_LIVES,
     pointsToPass: POINTS_TO_PASS,
+    mets: 0,
     answeredQuestions: [],
     status: "in-progress",
     attempt,
@@ -95,21 +96,25 @@ export async function recordAnswer(uid, questionId, isCorrect, confidence) {
   const pointsToPassDelta = isCorrect ? 0 : 1;
 
   const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS };
+  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS, mets: 0, attempt: 1 };
   const newScore = (data.score || 0) + delta;
   const newLives = Math.max(0, (typeof data.lives === "number" ? data.lives : MAX_LIVES) + livesDelta);
   const newPointsToPass = (data.pointsToPass || POINTS_TO_PASS) + pointsToPassDelta;
+  const newMets = (data.mets || 0) + 1;
+  const attempt = data.attempt || 1;
 
   await updateDoc(ref, {
     score: increment(delta),
     lives: increment(livesDelta),
     pointsToPass: increment(pointsToPassDelta),
+    mets: increment(1),
     answeredQuestions: arrayUnion(questionId),
     updatedAt: serverTimestamp()
   });
 
   await addDoc(collection(ref, "history"), {
     questionId,
+    questionType: "mc",
     isCorrect,
     confidence,
     delta,
@@ -117,10 +122,11 @@ export async function recordAnswer(uid, questionId, isCorrect, confidence) {
     scoreAfter: newScore,
     livesAfter: newLives,
     pointsToPassAfter: newPointsToPass,
+    attempt,
     timestamp: serverTimestamp()
   });
 
-  return { delta, newScore, newLives, newPointsToPass };
+  return { delta, newScore, newLives, newPointsToPass, newMets };
 }
 
 // Which of the 3 explanation pages to show for a given question/outcome.
@@ -214,6 +220,7 @@ export async function initLevelStateFor(uid, levelId, config = {}) {
   const attempt = snap.exists() ? (snap.data().attempt || 0) + 1 : 1;
   const data = {
     score: 0,
+    mets: 0,
     answeredQuestions: [],
     status: "in-progress",
     attempt,
@@ -256,11 +263,14 @@ export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confi
   const pointsToPassDelta = useLives && !isCorrect ? 1 : 0;
 
   const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS };
+  const data = snap.exists() ? snap.data() : { score: 0, lives: MAX_LIVES, pointsToPass: POINTS_TO_PASS, mets: 0, attempt: 1 };
   const newScore = (data.score || 0) + delta;
+  const newMets = (data.mets || 0) + 1;
+  const attempt = data.attempt || 1;
 
   const updatePayload = {
     score: increment(delta),
+    mets: increment(1),
     answeredQuestions: arrayUnion(questionId),
     updatedAt: serverTimestamp()
   };
@@ -282,11 +292,12 @@ export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confi
     confidence,
     delta,
     scoreAfter: newScore,
+    attempt,
     ...(useLives ? { livesDelta, livesAfter: newLives, pointsToPassAfter: newPointsToPass } : {}),
     timestamp: serverTimestamp()
   });
 
-  return useLives ? { delta, newScore, newLives, newPointsToPass } : { delta, newScore };
+  return useLives ? { delta, newScore, newLives, newPointsToPass, newMets } : { delta, newScore, newMets };
 }
 
 // Records a free-text answer. Unlike MC scoring, the point value (delta)
@@ -297,11 +308,14 @@ export async function recordAnswerFor(uid, levelId, questionId, isCorrect, confi
 export async function recordFreetextAnswerFor(uid, levelId, questionId, delta, meta) {
   const ref = levelDocRefFor(uid, levelId);
   const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : { score: 0 };
+  const data = snap.exists() ? snap.data() : { score: 0, mets: 0, attempt: 1 };
   const newScore = (data.score || 0) + delta;
+  const newMets = (data.mets || 0) + 1;
+  const attempt = data.attempt || 1;
 
   await updateDoc(ref, {
     score: increment(delta),
+    mets: increment(1),
     answeredQuestions: arrayUnion(questionId),
     updatedAt: serverTimestamp()
   });
@@ -315,10 +329,11 @@ export async function recordFreetextAnswerFor(uid, levelId, questionId, delta, m
     rawAnswer: meta.rawAnswer,
     predictedCorrectness: meta.predicted,
     userVerdict: meta.verdict,
+    attempt,
     timestamp: serverTimestamp()
   });
 
-  return { delta, newScore };
+  return { delta, newScore, newMets };
 }
 
 // Which explanation page to show for a given MC question/outcome, under
@@ -404,6 +419,66 @@ export async function determineNextDestinationFor(uid, config) {
 export function pickRandomFirstQuestionFor(config) {
   const id = Math.floor(Math.random() * config.totalQuestions) + 1;
   return `${config.pagePrefix}question${id}.html`;
+}
+
+// ---------------------------------------------------------------------
+// METs stats (level-completion page)
+// ---------------------------------------------------------------------
+
+// Personalized blurb based on how many METs (question submissions) the
+// player racked up this attempt.
+export function getMetsInterpretation(mets) {
+  if (mets <= 3) return "Looks like that was an easy walk in the park for you!";
+  if (mets <= 6) return "A brisk workout. Nice job.";
+  return "What a workout! That was a tough one, but you made it!";
+}
+
+// Shown to everyone underneath the personalized line above.
+export const METS_SCALE_DESCRIPTION =
+  "MET 3 or less: Light exercise | MET 4 - 6: Moderate exercise | MET 7 or greater: Intense workout";
+
+// Fetches every history entry recorded during a specific attempt of a
+// level (history entries are tagged with the `attempt` number they were
+// recorded under), so the completion page's stats reflect only the
+// current run and not earlier retries.
+export async function fetchAttemptHistoryFor(uid, levelId, attempt) {
+  const ref = levelDocRefFor(uid, levelId);
+  const historyRef = collection(ref, "history");
+  const q = query(historyRef, where("attempt", "==", attempt));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data());
+}
+
+// Classifies one history entry into a { correctness, confidence } pair
+// for the 2x2 (or 3x2, with freetext) stats matrix. MC questions are
+// correct/incorrect based on isCorrect; freetext questions are
+// correct/partial/incorrect based on the user's self-graded verdict.
+export function classifyAnswerEntry(entry) {
+  let correctness;
+  if (entry.questionType === "freetext") {
+    if (entry.userVerdict === "right-and-complete") correctness = "correct";
+    else if (entry.userVerdict === "partially-right") correctness = "partial";
+    else correctness = "incorrect";
+  } else {
+    correctness = entry.isCorrect ? "correct" : "incorrect";
+  }
+  const confidence = entry.confidence === "high" ? "high" : "low";
+  return { correctness, confidence };
+}
+
+// Tallies a list of history entries into counts per correctness x
+// confidence cell.
+export function tallyAnswerEntries(entries) {
+  const tally = {
+    correct: { high: 0, low: 0 },
+    partial: { high: 0, low: 0 },
+    incorrect: { high: 0, low: 0 }
+  };
+  entries.forEach((entry) => {
+    const { correctness, confidence } = classifyAnswerEntry(entry);
+    tally[correctness][confidence] += 1;
+  });
+  return tally;
 }
 
 export { auth, signOut };

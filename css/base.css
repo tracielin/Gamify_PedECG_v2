@@ -294,11 +294,27 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-.sidebar-placeholder {
-  font-size: 11px;
-  color: #9aa1ad;
+/* ---- METs - shown above the progress bar, below Lives ---- */
+
+.mets-section {
+  margin-top: 14px;
+  margin-bottom: 14px;
+  width: 100%;
   text-align: center;
-  line-height: 1.4;
+}
+
+.mets-label {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4f5a;
+}
+
+.mets-value {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2430;
 }
 
 /* ---- Main content area (between the two side panels) ---- */
@@ -396,6 +412,73 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
   border: 1px solid #a7f3d0;
   border-radius: 8px;
   padding: 10px 14px;
+}
+
+/* ---- Level-complete "Stats" section ---- */
+
+.stats-section {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.stats-mets-line {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.stats-mets-interpretation {
+  font-weight: 600;
+  color: #0f766e;
+  margin: 0 0 4px;
+}
+
+.stats-mets-scale {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 18px;
+}
+
+.stats-matrix-intro {
+  margin: 0 0 10px;
+}
+
+.stats-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.stats-matrix th,
+.stats-matrix td {
+  border: 1px solid #dcdfe4;
+  padding: 8px 10px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.stats-matrix thead th {
+  background: #f7f8fa;
+  font-size: 13px;
+}
+
+.stats-matrix tbody th {
+  background: #f7f8fa;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.matrix-cell .matrix-count {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.matrix-cell .matrix-label {
+  font-size: 12px;
+  color: #4a4f5a;
+  margin-top: 2px;
 }
 
 /* ---- Main menu ---- */

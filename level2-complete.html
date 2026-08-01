@@ -10,13 +10,6 @@
 <div class="sidebar-image-slot" id="level-completion-slot">
 <img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
-<div class="progress-track progress-track-simple">
-<div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
-<div class="progress-marker" id="progress-marker">
-<img src="images/icon-character-progress-marker.svg" alt="Progress character">
-</div>
-</div>
-<p class="progress-label">Level 2 Progress</p>
 <div class="lives-section">
 <p class="lives-label">Lives:</p>
 <div class="lives-hearts" id="lives-hearts">
@@ -26,15 +19,30 @@
 <span class="heart" data-index="3">&#9829;</span>
 </div>
 </div>
-<div class="sidebar-section sidebar-placeholder">
-<p>More metrics &amp; menu coming soon</p>
+<div class="mets-section">
+<p class="mets-label">METs:</p>
+<p class="mets-value" id="mets-value">0</p>
 </div>
+<div class="progress-track progress-track-simple">
+<div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
+<div class="progress-marker" id="progress-marker">
+<img src="images/icon-character-progress-marker.svg" alt="Progress character">
+</div>
+</div>
+<p class="progress-label">Level 2 Progress</p>
 </div>
 <div class="content">
 <div class="card">
 <h1>Level 2 complete!</h1>
-<p id="final-score" class="correct-answer"></p>
 <p>Nice work - you reached the points needed to pass this level.</p>
+<div class="stats-section">
+<h2>Stats</h2>
+<p class="stats-mets-line">METs: <span id="stats-mets">0</span></p>
+<p class="stats-mets-interpretation" id="stats-mets-interpretation"></p>
+<p class="stats-mets-scale">MET 3 or less: Light exercise | MET 4 - 6: Moderate exercise | MET 7 or greater: Intense workout</p>
+<p class="stats-matrix-intro" id="stats-matrix-intro"></p>
+<div id="stats-matrix-container"></div>
+</div>
 <a href="mainmenu.html" class="btn">Back to main menu</a>
 </div>
 </div>
@@ -69,12 +77,19 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelStateFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, setLives, playCompletionAnimation, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import {
+  requireAuth, getLevelStateFor, fetchAttemptHistoryFor, tallyAnswerEntries,
+  getMetsInterpretation, POINTS_TO_PASS, MAX_LIVES
+} from "./js/game.js";
+import {
+  setProgressBar, setLives, setMets, playCompletionAnimation, paintSidebarCache,
+  writeSidebarCache, renderStatsMatrix
+} from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
 const LEVEL_ID = "level2";
+const HAS_FREETEXT = true; // Level 2 includes freetext questions gradeable as "partially correct".
 
 setupPauseModal(2);
 setupPopover("ref1-btn", "ref1-overlay");
@@ -89,12 +104,23 @@ requireAuth(async (user) => {
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
-  document.getElementById("final-score").textContent =
-    state ? `Final score: ${state.score} points` : "";
-  writeSidebarCache("level2", { score, target, lives, maxLives: MAX_LIVES });
+  const mets = state && typeof state.mets === "number" ? state.mets : 0;
+  const attempt = state && typeof state.attempt === "number" ? state.attempt : 1;
+
+  writeSidebarCache("level2", { score, target, lives, maxLives: MAX_LIVES, mets });
   setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
+  setMets(mets);
   playCompletionAnimation();
+
+  document.getElementById("stats-mets").textContent = mets;
+  document.getElementById("stats-mets-interpretation").textContent = getMetsInterpretation(mets);
+
+  const historyEntries = await fetchAttemptHistoryFor(user.uid, LEVEL_ID, attempt);
+  document.getElementById("stats-matrix-intro").textContent =
+    `You faced ${historyEntries.length} challenges in this level. Here's how you did:`;
+  const tally = tallyAnswerEntries(historyEntries);
+  renderStatsMatrix(document.getElementById("stats-matrix-container"), tally, { hasPartial: HAS_FREETEXT });
 });
 </script>
 </body>

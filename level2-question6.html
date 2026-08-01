@@ -10,13 +10,6 @@
 <div class="sidebar-image-slot" id="level-completion-slot">
 <img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
 </div>
-<div class="progress-track progress-track-simple">
-<div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
-<div class="progress-marker" id="progress-marker">
-<img src="images/icon-character-progress-marker.svg" alt="Progress character">
-</div>
-</div>
-<p class="progress-label">Level 2 Progress</p>
 <div class="lives-section">
 <p class="lives-label">Lives:</p>
 <div class="lives-hearts" id="lives-hearts">
@@ -26,9 +19,17 @@
 <span class="heart" data-index="3">&#9829;</span>
 </div>
 </div>
-<div class="sidebar-section sidebar-placeholder">
-<p>More metrics &amp; menu coming soon</p>
+<div class="mets-section">
+<p class="mets-label">METs:</p>
+<p class="mets-value" id="mets-value">0</p>
 </div>
+<div class="progress-track progress-track-simple">
+<div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
+<div class="progress-marker" id="progress-marker">
+<img src="images/icon-character-progress-marker.svg" alt="Progress character">
+</div>
+</div>
+<p class="progress-label">Level 2 Progress</p>
 </div>
 <div class="content">
 <div class="card card-wide">
@@ -86,7 +87,7 @@
 </div>
 <script type="module">
 import { requireAuth, getLevelStateFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, setLives, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import { setProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 import { gradeFreetext } from "./js/freetext-grading.js";
@@ -110,11 +111,13 @@ requireAuth(async (user) => {
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
+  const mets = state && typeof state.mets === "number" ? state.mets : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${score} / ${target} to pass` : "";
-  writeSidebarCache("level2", { score, target, lives, maxLives: MAX_LIVES });
+  writeSidebarCache("level2", { score, target, lives, maxLives: MAX_LIVES, mets });
   setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
+  setMets(mets);
 
   document.getElementById("answer-form").addEventListener("submit", (e) => {
     e.preventDefault();

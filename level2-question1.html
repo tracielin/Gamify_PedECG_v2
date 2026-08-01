@@ -124,6 +124,9 @@ requireAuth(async (user) => {
 
   document.getElementById("answer-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const form = e.target;
+    if (form.dataset.submitting === "true") return; // guard against duplicate submit events
+    form.dataset.submitting = "true";
     const choice = parseInt(document.querySelector('input[name="choice"]:checked').value, 10);
     const confidence = document.querySelector('input[name="confidence"]:checked').value;
     const isCorrect = choice === CORRECT_INDEX;

@@ -151,8 +151,13 @@ requireAuth(async (user) => {
   banner.textContent = PREDICTED_LABELS[predicted] || PREDICTED_LABELS.unsure;
   banner.classList.add(`predicted-${predicted}`);
 
-  document.querySelectorAll(".verdict-buttons button").forEach((btn) => {
+  let verdictSubmitted = false;
+  const verdictButtons = document.querySelectorAll(".verdict-buttons button");
+  verdictButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
+      if (verdictSubmitted) return; // guard against duplicate clicks
+      verdictSubmitted = true;
+      verdictButtons.forEach((b) => { b.disabled = true; });
       const delta = parseFloat(btn.dataset.delta);
       const verdict = btn.dataset.verdict;
       await recordFreetextAnswerFor(user.uid, LEVEL_CONFIG.levelId, QUESTION_ID, delta, {

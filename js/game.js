@@ -12,8 +12,24 @@ export const MAX_LIVES = 4;
 
 // Redirects to the login page if nobody is signed in; otherwise calls
 // onReady(user). Use this at the top of every page except index.html.
+//
+// Firebase can invoke the onAuthStateChanged callback more than once for
+// a single page load (e.g. once from cached/local auth state, then again
+// once it's reconfirmed with the server, or after a background token
+// refresh). Without guarding against that, `onReady` - and any event
+// listeners it attaches (like a question's "submit" handler) - would get
+// re-run/re-attached every extra time the callback fires, so a single
+// click could end up calling recordAnswer/recordAnswerFor/
+// recordFreetextAnswerFor (and therefore incrementing METs) more than
+// once. To prevent that, we act on only the first callback and
+// immediately unsubscribe.
 export function requireAuth(onReady) {
-  onAuthStateChanged(auth, (user) => {
+  let handled = false;
+  let unsubscribe;
+  unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (handled) return;
+    handled = true;
+    if (unsubscribe) unsubscribe();
     if (!user) {
       window.location.href = "index.html";
     } else {

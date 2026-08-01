@@ -3,48 +3,13 @@ import { MAX_LIVES, POINTS_TO_PASS as DEFAULT_POINTS_TO_PASS } from "./game.js";
 // ---------------------------------------------------------------------
 // Progress bar
 //
-// Two markup/behavior modes are supported, auto-detected from the DOM:
-//
-//  - "simple" mode (Level 1): the track has no negative/red half - a
-//    score of 0 sits at the very bottom and the fill grows straight up
-//    toward the (possibly-rising) points-to-pass target. Used on pages
-//    whose markup has a `.progress-track-simple` track and no
-//    `#progress-fill-negative` element.
-//
-//  - "legacy" two-tone mode (Level 2 and any future level still using
-//    the original markup): a fixed zero baseline sits 2/3 of the way
-//    down the track, green fill grows up for positive scores, red fill
-//    grows down for negative scores. Unchanged from the original
-//    behavior so Level 2 is unaffected by the Level 1 redesign.
+// Every level uses zero-to-positive-only scoring: wrong answers cost a
+// life rather than subtracting points, so the score can never go below
+// 0. The track has no negative/red region - a score of 0 sits at the
+// very bottom and the fill grows straight up toward the (possibly-rising)
+// points-to-pass target, with the marker riding the top edge of the fill.
 // ---------------------------------------------------------------------
 
-const LEGACY_POINTS_TO_PASS = 5;
-const LEGACY_POS_REGION_PCT = 200 / 3; // 66.6667% - track space above the baseline
-const LEGACY_NEG_REGION_PCT = 100 / 3; // 33.3333% - track space below the baseline
-
-function computeLegacyPositions(score) {
-  const halfPct = Math.min(Math.abs(score) / LEGACY_POINTS_TO_PASS, 1) * 100;
-
-  if (score > 0) {
-    return {
-      posHeight: halfPct,
-      negHeight: 0,
-      markerTop: LEGACY_POS_REGION_PCT - (halfPct / 100) * LEGACY_POS_REGION_PCT,
-    };
-  }
-  if (score < 0) {
-    return {
-      posHeight: 0,
-      negHeight: halfPct,
-      markerTop: LEGACY_POS_REGION_PCT + (halfPct / 100) * LEGACY_NEG_REGION_PCT,
-    };
-  }
-  return { posHeight: 0, negHeight: 0, markerTop: LEGACY_POS_REGION_PCT };
-}
-
-// Simple mode: score is always >= 0 (wrong answers cost a life, not
-// points), so the whole track maps 0..target onto 0%..100% fill height,
-// with the marker riding the top edge of the fill.
 function computeSimplePositions(score, target) {
   const t = target && target > 0 ? target : DEFAULT_POINTS_TO_PASS;
   const pct = Math.min(Math.max(score, 0) / t, 1) * 100;
@@ -53,11 +18,10 @@ function computeSimplePositions(score, target) {
 
 function getElements() {
   const posFill = document.getElementById("progress-fill-positive");
-  const negFill = document.getElementById("progress-fill-negative");
   const marker = document.getElementById("progress-marker");
   const markerIcon = marker ? marker.querySelector("img") : null;
   if (!posFill || !marker || !markerIcon) return null;
-  return { posFill, negFill, marker, markerIcon, isSimple: !negFill };
+  return { posFill, marker, markerIcon };
 }
 
 // Spins the marker icon once around the z-axis. Used as an
@@ -75,26 +39,17 @@ function playZeroPointsAcknowledgement(markerIcon) {
 }
 
 function paint(els, score, target) {
-  if (els.isSimple) {
-    const pos = computeSimplePositions(score, target);
-    els.posFill.style.height = pos.fillHeight + "%";
-    els.marker.style.bottom = pos.markerBottom + "%";
-  } else {
-    const pos = computeLegacyPositions(score);
-    els.posFill.style.height = pos.posHeight + "%";
-    els.negFill.style.height = pos.negHeight + "%";
-    els.marker.style.top = pos.markerTop + "%";
-  }
+  const pos = computeSimplePositions(score, target);
+  els.posFill.style.height = pos.fillHeight + "%";
+  els.marker.style.bottom = pos.markerBottom + "%";
 }
 
 function withoutTransition(els, fn) {
   els.posFill.classList.add("no-transition");
-  if (els.negFill) els.negFill.classList.add("no-transition");
   els.marker.classList.add("no-transition");
   fn();
   void els.posFill.offsetHeight; // force reflow so the change applies instantly
   els.posFill.classList.remove("no-transition");
-  if (els.negFill) els.negFill.classList.remove("no-transition");
   els.marker.classList.remove("no-transition");
 }
 

@@ -334,10 +334,16 @@ export function explanationPageForLevel(pagePrefix, questionId, isCorrect, confi
 // maxQuestions, pagePrefix, useLives, maxLives }
 //
 // When config.useLives is set, pointsToPass is read from Firestore (it
-// rises by 1 each time a wrong MC answer is recorded via recordAnswerFor)
-// rather than taken as the fixed config value, and running out of lives
-// is checked as an additional failure condition alongside the
-// maxQuestions cap.
+// rises by 1 each time a wrong MC answer is recorded via recordAnswerFor),
+// and running out of lives is the ONLY failure condition - there's no cap
+// on question attempts. Once every question in the pool has been used in
+// this attempt, the pool reshuffles (see below), so the user can keep
+// attempting questions for as long as they still have lives left.
+//
+// For levels that don't use lives, `maxQuestions` is still used as a
+// failure condition once that many questions have been answered without
+// reaching the target (kept for any level using the plain
+// confidence-weighted scoring rule).
 export async function determineNextDestinationFor(uid, config) {
   const { levelId, totalQuestions, maxQuestions, pagePrefix, useLives, maxLives } = config;
   const ref = levelDocRefFor(uid, levelId);
@@ -346,7 +352,7 @@ export async function determineNextDestinationFor(uid, config) {
   const score = data.score || 0;
   const pointsToPass = useLives ? (data.pointsToPass || config.pointsToPass) : config.pointsToPass;
   const lives = useLives ? (typeof data.lives === "number" ? data.lives : (maxLives || MAX_LIVES)) : null;
-  const answered = data.answeredQuestions || [];
+  let answered = data.answeredQuestions || [];
 
   if (score >= pointsToPass) {
     await updateDoc(ref, {
@@ -358,7 +364,9 @@ export async function determineNextDestinationFor(uid, config) {
     return `${pagePrefix}complete.html`;
   }
 
-  if ((useLives && lives <= 0) || answered.length >= maxQuestions) {
+  const outOfLives = useLives && lives <= 0;
+  const outOfQuestions = !useLives && answered.length >= maxQuestions;
+  if (outOfLives || outOfQuestions) {
     await updateDoc(ref, { status: "failed", failedAt: serverTimestamp() });
     await addDoc(collection(ref, "failures"), {
       finalScore: score,
@@ -369,11 +377,27 @@ export async function determineNextDestinationFor(uid, config) {
     return `${pagePrefix}failed.html`;
   }
 
-  const remaining = [];
+  // Once all `totalQuestions` have been used in this attempt, reshuffle:
+  // start a fresh cycle through all of them, avoiding an immediate repeat
+  // of the question the user just answered.
+  let remaining = [];
   for (let i = 1; i <= totalQuestions; i++) {
     if (!answered.includes(i)) remaining.push(i);
   }
-  const nextId = remaining[Math.floor(Math.random() * remaining.length)];
+  let excludeId = null;
+  if (remaining.length === 0) {
+    excludeId = answered[answered.length - 1];
+    answered = [];
+    await updateDoc(ref, { answeredQuestions: [] });
+    remaining = [];
+    for (let i = 1; i <= totalQuestions; i++) remaining.push(i);
+  }
+
+  let pool = remaining;
+  if (excludeId != null && pool.length > 1) {
+    pool = pool.filter((id) => id !== excludeId);
+  }
+  const nextId = pool[Math.floor(Math.random() * pool.length)];
   return `${pagePrefix}question${nextId}.html`;
 }
 

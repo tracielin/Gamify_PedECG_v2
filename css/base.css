@@ -168,29 +168,6 @@ body {
   overflow: visible; /* let the marker icon sit slightly proud of the track */
 }
 
-/* Baseline sits 2/3 of the way down: positive (green) territory gets the
-   top 2/3 of the track, negative (red) territory gets the bottom 1/3. */
-.progress-half {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.progress-half-positive {
-  top: 0;
-  height: 66.6667%;
-  justify-content: flex-end; /* fill's bottom edge stays pinned at baseline */
-}
-
-.progress-half-negative {
-  top: 66.6667%;
-  height: 33.3333%;
-  justify-content: flex-start; /* fill's top edge stays pinned at baseline */
-}
-
 .progress-fill {
   width: 100%;
   height: 0%;
@@ -206,27 +183,12 @@ body {
 }
 
 .progress-fill-positive { background: #16a34a; }
-.progress-fill-negative { background: #dc2626; }
 
-/* Hard horizontal line marking the zero baseline. */
-.progress-baseline {
-  position: absolute;
-  left: -6px;
-  right: -6px;
-  top: 66.6667%;
-  height: 2px;
-  margin-top: -1px;
-  background: #4a4f5a;
-  z-index: 2;
-}
-
-/* Marker icon that sits at the leading edge (tip) of whichever fill is
-   active, and slides up/down as the score changes. Centered on the
-   baseline when score is exactly 0. */
+/* Marker icon that sits at the leading edge (tip) of the fill, and
+   slides up/down as the score changes. */
 .progress-marker {
   position: absolute;
   left: 50%;
-  top: 66.6667%;
   width: 30px;
   height: 30px;
   transform: translate(-50%, -50%);
@@ -257,10 +219,9 @@ body {
   animation: rotateZ-anim 0.6s ease-in-out 1;
 }
 
-/* ---- Level 1: "simple" (zero-to-positive-only) progress bar ----
-   Used on Level 1 pages instead of the legacy two-tone track: no
-   negative/red region, no baseline - the fill simply grows from the
-   bottom of the track (score 0) up toward the points-to-pass target. */
+/* Zero-to-positive-only progress bar: no negative/red region, no
+   baseline - the fill simply grows from the bottom of the track
+   (score 0) up toward the points-to-pass target. */
 .progress-track-simple {
   display: flex;
   flex-direction: column;
@@ -272,11 +233,14 @@ body {
   height: 0%;
 }
 
-/* Overrides the legacy `.progress-marker { top: 66.6667%; }` default so
-   the marker can be positioned from the bottom of the track instead. */
+/* Positions the marker from the bottom of the track. Overrides the
+   inherited translate(-50%, -50%) with horizontal-only centering, so the
+   marker's bottom edge sits exactly at `bottom` (i.e. right at the top
+   edge of the fill) instead of floating half the icon's height too high. */
 .progress-track-simple .progress-marker {
-  top: auto !important;
+  top: auto;
   bottom: 0%;
+  transform: translateX(-50%);
   transition: bottom 0.4s ease;
 }
 

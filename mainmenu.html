@@ -32,7 +32,8 @@
 import {
   requireAuth, auth, signOut,
   getLevelState, determineNextDestination,
-  getLevelStateFor, determineNextDestinationFor
+  getLevelStateFor, determineNextDestinationFor,
+  MAX_LIVES
 } from "./js/game.js";
 
 const LEVELS = [
@@ -54,6 +55,8 @@ const LEVELS = [
       pointsToPass: 5,
       maxQuestions: 6,
       pagePrefix: "level2-",
+      useLives: true,
+      maxLives: MAX_LIVES,
     }),
   },
 ];

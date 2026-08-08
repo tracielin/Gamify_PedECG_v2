@@ -705,6 +705,39 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 
 .popover-close:hover { color: #1f2430; }
 
+/* Images dropped into popover content (e.g. reference diagrams) scale
+   down to fit the box instead of overflowing it. */
+.popover-box img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 12px 0;
+}
+
+/* Reusable table style for popover reference content (e.g. normal
+   ranges by age). Matches the look of .stats-matrix elsewhere in the
+   app so tables feel consistent across the app. */
+.popover-box table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.popover-box th,
+.popover-box td {
+  border: 1px solid #dcdfe4;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.popover-box th {
+  background: #f7f8fa;
+  font-size: 13px;
+  color: #4a4f5a;
+}
+
 /* ---- Pause game modal ---- */
 
 .pause-modal-actions {

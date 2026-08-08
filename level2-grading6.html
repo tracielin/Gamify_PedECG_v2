@@ -9,7 +9,7 @@
 <body>
 <div class="sidebar sidebar-progress sidebar-right">
 <div class="lives-section">
-<p class="lives-label">Lives: <span class="lives-count" id="lives-count">4</span></p>
+<p class="lives-label">Lives: <span class="lives-count" id="lives-count">4</span> <button class="info-btn" id="lives-info-btn" type="button" aria-label="What are lives?">i</button></p>
 <div class="lives-hearts" id="lives-hearts">
 <span class="heart" data-index="0">&#9829;</span>
 <span class="heart" data-index="1">&#9829;</span>
@@ -18,7 +18,7 @@
 </div>
 </div>
 <div class="mets-section">
-<p class="mets-label">METs:</p>
+<p class="mets-label">METs: <button class="info-btn" id="mets-info-btn" type="button" aria-label="What are METs?">i</button></p>
 <p class="mets-value" id="mets-value">0</p>
 </div>
 <div class="sidebar-image-slot" id="level-completion-slot">
@@ -88,6 +88,20 @@
 </div>
 </div>
 </div>
+<div class="popover-overlay" id="lives-info-overlay">
+<div class="popover-box">
+<button class="popover-close" id="lives-info-close" type="button" aria-label="Close">&times;</button>
+<h3>What are lives?</h3>
+<p>You get 4 lives to complete this level. You lose a "life" for each wrong answer on a multiple choice question. Wrong answers on free-text questions don't cost any lives; you just won't progress towards level completion. If you lose all 4 lives, you'll get the chance to retry the level from the beginning or do a different learning method before coming back to try the level again.</p>
+</div>
+</div>
+<div class="popover-overlay" id="mets-info-overlay">
+<div class="popover-box">
+<button class="popover-close" id="mets-info-close" type="button" aria-label="Close">&times;</button>
+<h3>What are METs?</h3>
+<p>In this game, METs are your Motivation/Endurance/Tenacity points. The more questions or challenges you face, the more METs you gain. Think of them like exercise METs (metabolic equivalent of task): 3 or less is like light exercise, 4 to 6 is moderate intensity exercise, and 7 or more is a vigorous intensity workout.</p>
+</div>
+</div>
 <script type="module">
 import { requireAuth, getLevelStateFor, recordFreetextAnswerFor, determineNextDestinationFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
 import { setProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
@@ -96,6 +110,8 @@ import { setupPauseModal } from "./js/pause.js";
 
 setupPauseModal(2);
 setupPopover("ref1-btn", "ref1-overlay");
+setupPopover("lives-info-btn", "lives-info-overlay");
+setupPopover("mets-info-btn", "mets-info-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
 
 // Paint the sidebar from last known state immediately, before waiting on

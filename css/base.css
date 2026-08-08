@@ -277,6 +277,37 @@ h1, h2, h3, h4, h5, h6 {
   color: #4a4f5a;
 }
 
+/* ---- Small inline "i" info buttons (Lives / METs explainer popovers) ---- */
+
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 4px;
+  border-radius: 50%;
+  border: 1px solid #9aa1ad;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 10px;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.info-btn:hover,
+.info-btn:focus-visible {
+  color: #ffffff;
+  background: #6b7280;
+  border-color: #6b7280;
+  outline: none;
+}
+
 .lives-count {
   font-weight: 700;
   color: #1f2430;
@@ -326,6 +357,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 12px;
   font-weight: 600;
   color: #4a4f5a;
+}
+
+.mets-label .info-btn {
+  margin-left: 4px;
 }
 
 .mets-value {

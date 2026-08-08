@@ -135,7 +135,8 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-image-slot {
   width: 56px;
   height: 56px;
-  margin-bottom: 18px;
+  margin-top: auto; /* push this + the progress bar + label to the bottom of the panel, like .sidebar-pause does in the toolbar panel */
+  margin-bottom: -28px; /* pull the progress bar up so its top edge sits at this icon's vertical center */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,6 +145,8 @@ h1, h2, h3, h4, h5, h6 {
   border: 2px solid transparent;
   perspective: 400px; /* gives the completion spin a 3D feel */
   transition: border-color 0.3s ease, background-color 0.3s ease;
+  position: relative; /* establishes a stacking context so z-index below is honored */
+  z-index: 2; /* render in front of the progress bar it now overlaps */
 }
 
 .sidebar-image-slot.icon-success {
@@ -279,6 +282,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 12px;
   font-weight: 600;
   color: #4a4f5a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 /* ---- Small round info buttons (Lives / METs explainer popovers) ---- */
@@ -289,7 +296,6 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   width: 15px;
   height: 15px;
-  margin-left: 4px;
   border-radius: 50%;
   border: 1px solid #6b7280;
   background: #6b7280;
@@ -299,7 +305,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1;
   padding: 0;
   cursor: pointer;
-  vertical-align: middle;
+  flex: 0 0 auto;
 }
 
 .info-btn:hover,
@@ -365,10 +371,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 12px;
   font-weight: 600;
   color: #4a4f5a;
-}
-
-.mets-label .info-btn {
-  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .mets-value {

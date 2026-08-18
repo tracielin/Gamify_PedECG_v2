@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="images/favicon_ecg.png">
-<title>Not quite - let's dig into this one - Question 1</title>
+<title>PedECG Challenge - Quest 1</title>
 <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
@@ -34,11 +34,11 @@
 </div>
 <div class="content">
 <div class="card">
-<p class="score-display" id="score-display"></p>
-<h2>Not quite - let's dig into this one</h2>
-<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
-<p>This is a common pitfall: a fast rate is mistaken for SVT without checking the P waves first. The single most important discriminator between sinus tachycardia and SVT is P-wave morphology and its relationship to the QRS — SVT typically shows an abnormal, absent, or retrograde P wave, or none at all. Since a normal P wave precedes every QRS here, this points to a sinus mechanism, not SVT. Remember: pediatric normal heart rate ranges are much wider and higher than adult ranges, especially in preschool-age children, so rate alone should never be your only criterion.</p>
-<button id="continue-btn" class="btn">Continue</button>
+<h1>Pediatric ECG Challenge</h1>
+<p id="greeting">Loading...</p>
+<p style="font-size:14px;color:#6b7280;">You need 5 points to pass, and you have 4 lives. Each correct answer earns 1-2 points depending on your confidence. A wrong answer costs 1 life and raises the points needed to pass by 1. Answer as many questions as you need to - the quest only ends when you reach the points target or run out of lives.</p>
+<button id="start-btn" class="btn">Begin Quest 1</button>
+<a href="mainmenu.html" class="btn secondary">Main menu</a>
 </div>
 </div>
 <div class="sidebar sidebar-toolbar sidebar-left">
@@ -86,8 +86,8 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getQuestState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, animateProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import { requireAuth, initQuestState, pickRandomFirstQuestion, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { setProgressBar, setLives, setMets, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
@@ -96,37 +96,17 @@ setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("lives-info-btn", "lives-info-overlay");
 setupPopover("mets-info-btn", "mets-info-overlay");
 setupPopover("ref2-btn", "ref2-overlay");
+setProgressBar(0, POINTS_TO_PASS);
+setLives(MAX_LIVES, MAX_LIVES);
+setMets(0);
+writeSidebarCache("quest1", { score: 0, target: POINTS_TO_PASS, lives: MAX_LIVES, maxLives: MAX_LIVES, mets: 0 });
 
-// Paint the sidebar from last known state immediately, before waiting on
-// auth/Firestore, so it never flashes back to empty on navigation.
-paintSidebarCache("quest1");
+requireAuth((user) => {
+  document.getElementById("greeting").textContent = `Welcome, ${user.displayName || "player"}! Ready to start?`;
 
-const SCORE_ANIM_KEY = "pedecgScoreAnim";
-
-requireAuth(async (user) => {
-  const state = await getQuestState(user.uid);
-  const score = state ? state.score : 0;
-  const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
-  const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
-  const mets = state && typeof state.mets === "number" ? state.mets : 0;
-  document.getElementById("score-display").textContent =
-    state ? `Current score: ${score} / ${target} to pass` : "";
-  writeSidebarCache("quest1", { score, target, lives, maxLives: MAX_LIVES, mets });
-  setLives(lives, MAX_LIVES);
-  setMets(mets);
-
-  const animRaw = sessionStorage.getItem(SCORE_ANIM_KEY);
-  if (animRaw) {
-    sessionStorage.removeItem(SCORE_ANIM_KEY);
-    const { from, to } = JSON.parse(animRaw);
-    animateProgressBar(from, to, target);
-  } else {
-    setProgressBar(score, target);
-  }
-
-  document.getElementById("continue-btn").addEventListener("click", async () => {
-    const next = await determineNextDestination(user.uid);
-    window.location.href = next;
+  document.getElementById("start-btn").addEventListener("click", async () => {
+    await initQuestState(user.uid);
+    window.location.href = pickRandomFirstQuestion();
   });
 });
 </script>

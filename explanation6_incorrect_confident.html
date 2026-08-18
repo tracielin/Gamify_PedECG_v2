@@ -21,8 +21,8 @@
 <p class="mets-label">METs <button class="info-btn" id="mets-info-btn" type="button" aria-label="What are METs?">?</button></p>
 <p class="mets-value" id="mets-value">0</p>
 </div>
-<div class="sidebar-image-slot" id="level-completion-slot">
-<img src="images/icon-level-completion.svg" alt="Level completion icon" class="sidebar-image" id="level-completion-icon">
+<div class="sidebar-image-slot" id="quest-completion-slot">
+<img src="images/icon-quest-completion.svg" alt="Quest completion icon" class="sidebar-image" id="quest-completion-icon">
 </div>
 <div class="progress-track progress-track-simple">
 <div class="progress-fill progress-fill-positive" id="progress-fill-positive"></div>
@@ -30,7 +30,7 @@
 <img src="images/icon-character-progress-marker.svg" alt="Progress character">
 </div>
 </div>
-<p class="progress-label">Level 1 Progress</p>
+<p class="progress-label">Quest 1 Progress</p>
 </div>
 <div class="content">
 <div class="card">
@@ -67,7 +67,7 @@
 <p id="pause-message"></p>
 <div class="pause-modal-actions">
 <button id="pause-menu-btn" class="btn secondary" type="button">Return to Main Menu</button>
-<button id="pause-resume-btn" class="btn" type="button">Resume Level</button>
+<button id="pause-resume-btn" class="btn" type="button">Resume Quest</button>
 </div>
 </div>
 </div>
@@ -75,7 +75,7 @@
 <div class="popover-box">
 <button class="popover-close" id="lives-info-close" type="button" aria-label="Close">&times;</button>
 <h3>What are lives?</h3>
-<p>You get 4 lives to complete this level. You lose a "life" for each wrong answer on a multiple choice question. Wrong answers on free-text questions don't cost any lives; you just won't progress towards level completion. If you lose all 4 lives, you'll get the chance to retry the level from the beginning or do a different learning method before coming back to try the level again.</p>
+<p>You get 4 lives to complete this quest. You lose a "life" for each wrong answer on a multiple choice question. Wrong answers on free-text questions don't cost any lives; you just won't progress towards quest completion. If you lose all 4 lives, you'll get the chance to retry the quest from the beginning or do a different learning method before coming back to try the quest again.</p>
 </div>
 </div>
 <div class="popover-overlay" id="mets-info-overlay">
@@ -86,7 +86,7 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getLevelState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { requireAuth, getQuestState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
 import { setProgressBar, animateProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
@@ -99,19 +99,19 @@ setupPopover("ref2-btn", "ref2-overlay");
 
 // Paint the sidebar from last known state immediately, before waiting on
 // auth/Firestore, so it never flashes back to empty on navigation.
-paintSidebarCache("level1");
+paintSidebarCache("quest1");
 
 const SCORE_ANIM_KEY = "pedecgScoreAnim";
 
 requireAuth(async (user) => {
-  const state = await getLevelState(user.uid);
+  const state = await getQuestState(user.uid);
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
   const mets = state && typeof state.mets === "number" ? state.mets : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${score} / ${target} to pass` : "";
-  writeSidebarCache("level1", { score, target, lives, maxLives: MAX_LIVES, mets });
+  writeSidebarCache("quest1", { score, target, lives, maxLives: MAX_LIVES, mets });
   setLives(lives, MAX_LIVES);
   setMets(mets);
 

@@ -18,7 +18,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ---- Fixed side panels (shared base) ----
    Two independent panels sit on either side of `.content`:
      - `.sidebar-toolbar`  (pause/reference buttons) - lives on the LEFT
-     - `.sidebar-progress` (level-completion icon + progress bar)
+     - `.sidebar-progress` (quest-completion icon + progress bar)
                                                        - lives on the RIGHT
    Which physical side each one renders on is controlled purely by the
    `.sidebar-left` / `.sidebar-right` modifier classes below (via flex
@@ -156,7 +156,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar-image { max-width: 100%; max-height: 100%; }
 
-/* Played once when the user completes the level: the top goal icon
+/* Played once when the user completes the quest: the top goal icon
    spins on its Y axis, then settles into a green "success" state. */
 @keyframes rotateY-anim {
   from { transform: rotateY(0deg); }
@@ -173,7 +173,7 @@ h1, h2, h3, h4, h5, h6 {
 .progress-track {
   position: relative;
   width: 28px;
-  height: clamp(280px, 50vh, 600px);
+  height: clamp(250px, 50vh, 900px);
   background: #f7f8fa;
   border: 1px solid #dcdfe4;
   box-sizing: border-box;
@@ -265,7 +265,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: none !important;
 }
 
-/* ---- Lives (hearts) - used by any level with a lives system ---- */
+/* ---- Lives (hearts)  ---- */
 
 .lives-section {
   margin-top: 14px;
@@ -348,7 +348,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-/* ---- METs - shown above the progress bar, below Lives ---- */
+/* ---- METs  ---- */
 
 .mets-section {
   margin-top: 14px;
@@ -560,28 +560,28 @@ h3 { font-size: 15px; color: #4a4f5a; margin-bottom: 8px; }
 
 .page-header h1 { margin: 0; }
 
-.level-table {
+.quest-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
 
-.level-table th,
-.level-table td {
+.quest-table th,
+.quest-table td {
   text-align: left;
   padding: 14px 12px;
   border-bottom: 1px solid #e1e3e8;
   vertical-align: top;
 }
 
-.level-table th {
+.quest-table th {
   font-size: 12px;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.level-stats {
+.quest-stats {
   font-size: 13px;
   color: #4a4f5a;
   line-height: 1.7;

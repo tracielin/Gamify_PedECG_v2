@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="images/favicon_ecg.png">
-<title>Not quite - let's dig into this one - Question 1</title>
+<title>Review - Quest 2 Question 5</title>
 <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
@@ -30,15 +30,32 @@
 <img src="images/icon-character-progress-marker.svg" alt="Progress character">
 </div>
 </div>
-<p class="progress-label">Quest 1 Progress</p>
+<p class="progress-label">Quest 2 Progress</p>
 </div>
 <div class="content">
-<div class="card">
+<div class="card card-wide">
 <p class="score-display" id="score-display"></p>
-<h2>Not quite - let's dig into this one</h2>
-<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
-<p>This is a common pitfall: a fast rate is mistaken for SVT without checking the P waves first. The single most important discriminator between sinus tachycardia and SVT is P-wave morphology and its relationship to the QRS — SVT typically shows an abnormal, absent, or retrograde P wave, or none at all. Since a normal P wave precedes every QRS here, this points to a sinus mechanism, not SVT. Remember: pediatric normal heart rate ranges are much wider and higher than adult ranges, especially in preschool-age children, so rate alone should never be your only criterion.</p>
-<button id="continue-btn" class="btn">Continue</button>
+<div class="gameplay-grid">
+<div class="ecg-panel">
+<img src="images/ecg-placeholder.svg" alt="ECG strip">
+<p class="ecg-caption">Placeholder ECG strip - replace with a real strip image.</p>
+</div>
+<div class="question-panel">
+<h2>Your answer</h2>
+<div class="answer-review" id="answer-review"></div>
+<div class="predicted-banner" id="predicted-banner"></div>
+<div class="gold-standard-box">
+<h3>A complete answer should include:</h3>
+<p>A complete answer should note the short PR interval and slurred upstroke (delta wave) into the QRS complex, and identify Wolff-Parkinson-White (ventricular pre-excitation) as the underlying cause, since an accessory pathway allows early ventricular activation.</p>
+</div>
+<p>How did you actually do?</p>
+<div class="verdict-buttons">
+<button class="btn" data-delta="1" data-verdict="right-and-complete" type="button">My answer was right and complete (+1 point)</button>
+<button class="btn secondary" data-delta="0.5" data-verdict="partially-right" type="button">My answer was partially right (+0.5 point)</button>
+<button class="btn secondary" data-delta="0" data-verdict="wrong" type="button">My answer was wrong (0 points)</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sidebar sidebar-toolbar sidebar-left">
@@ -86,12 +103,12 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getQuestState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, animateProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import { requireAuth, getQuestStateFor, recordFreetextAnswerFor, determineNextDestinationFor, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
+import { setProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
-setupPauseModal(1);
+setupPauseModal(2);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("lives-info-btn", "lives-info-overlay");
 setupPopover("mets-info-btn", "mets-info-overlay");
@@ -99,34 +116,76 @@ setupPopover("ref2-btn", "ref2-overlay");
 
 // Paint the sidebar from last known state immediately, before waiting on
 // auth/Firestore, so it never flashes back to empty on navigation.
-paintSidebarCache("quest1");
+paintSidebarCache("quest2");
 
-const SCORE_ANIM_KEY = "pedecgScoreAnim";
+const LEVEL_CONFIG = {
+  questId: "quest2",
+  totalQuestions: 6,
+  pointsToPass: 5,
+  maxQuestions: 6,
+  pagePrefix: "quest2-",
+  useLives: true,
+  maxLives: MAX_LIVES,
+};
+const QUESTION_ID = 5;
+const FREETEXT_KEY = "pedecgFreetextQuest2";
+
+const PREDICTED_LABELS = {
+  correct: "Our system's first-pass guess: this looks CORRECT.",
+  incorrect: "Our system's first-pass guess: this looks INCORRECT.",
+  unsure: "Our system isn't confident either way - please judge for yourself.",
+};
 
 requireAuth(async (user) => {
-  const state = await getQuestState(user.uid);
+  const state = await getQuestStateFor(user.uid, LEVEL_CONFIG.questId);
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
   const mets = state && typeof state.mets === "number" ? state.mets : 0;
   document.getElementById("score-display").textContent =
     state ? `Current score: ${score} / ${target} to pass` : "";
-  writeSidebarCache("quest1", { score, target, lives, maxLives: MAX_LIVES, mets });
+  writeSidebarCache("quest2", { score, target, lives, maxLives: MAX_LIVES, mets });
+  setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
   setMets(mets);
 
-  const animRaw = sessionStorage.getItem(SCORE_ANIM_KEY);
-  if (animRaw) {
-    sessionStorage.removeItem(SCORE_ANIM_KEY);
-    const { from, to } = JSON.parse(animRaw);
-    animateProgressBar(from, to, target);
-  } else {
-    setProgressBar(score, target);
+  const raw = sessionStorage.getItem(FREETEXT_KEY);
+  let data = null;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    data = null;
   }
+  if (!data || data.questionId !== QUESTION_ID) {
+    data = { rawAnswer: "", confidence: "low", predicted: "unsure", html: "<em>No answer was recorded for this question.</em>" };
+  }
+  sessionStorage.removeItem(FREETEXT_KEY);
 
-  document.getElementById("continue-btn").addEventListener("click", async () => {
-    const next = await determineNextDestination(user.uid);
-    window.location.href = next;
+  document.getElementById("answer-review").innerHTML = data.html || "<em>(no answer entered)</em>";
+
+  const banner = document.getElementById("predicted-banner");
+  const predicted = data.predicted || "unsure";
+  banner.textContent = PREDICTED_LABELS[predicted] || PREDICTED_LABELS.unsure;
+  banner.classList.add(`predicted-${predicted}`);
+
+  let verdictSubmitted = false;
+  const verdictButtons = document.querySelectorAll(".verdict-buttons button");
+  verdictButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (verdictSubmitted) return; // guard against duplicate clicks
+      verdictSubmitted = true;
+      verdictButtons.forEach((b) => { b.disabled = true; });
+      const delta = parseFloat(btn.dataset.delta);
+      const verdict = btn.dataset.verdict;
+      await recordFreetextAnswerFor(user.uid, LEVEL_CONFIG.questId, QUESTION_ID, delta, {
+        confidence: data.confidence,
+        rawAnswer: data.rawAnswer,
+        predicted,
+        verdict,
+      });
+      const next = await determineNextDestinationFor(user.uid, LEVEL_CONFIG);
+      window.location.href = next;
+    });
   });
 });
 </script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="images/favicon_ecg.png">
-<title>Not quite - let's dig into this one - Question 1</title>
+<title>Quest 2 complete</title>
 <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
@@ -30,15 +30,21 @@
 <img src="images/icon-character-progress-marker.svg" alt="Progress character">
 </div>
 </div>
-<p class="progress-label">Quest 1 Progress</p>
+<p class="progress-label">Quest 2 Progress</p>
 </div>
 <div class="content">
 <div class="card">
-<p class="score-display" id="score-display"></p>
-<h2>Not quite - let's dig into this one</h2>
-<p class="correct-answer">Correct answer: Normal sinus rhythm for this age</p>
-<p>This is a common pitfall: a fast rate is mistaken for SVT without checking the P waves first. The single most important discriminator between sinus tachycardia and SVT is P-wave morphology and its relationship to the QRS — SVT typically shows an abnormal, absent, or retrograde P wave, or none at all. Since a normal P wave precedes every QRS here, this points to a sinus mechanism, not SVT. Remember: pediatric normal heart rate ranges are much wider and higher than adult ranges, especially in preschool-age children, so rate alone should never be your only criterion.</p>
-<button id="continue-btn" class="btn">Continue</button>
+<h1>Quest 2 complete!</h1>
+<p>Nice work - you reached the points needed to pass this quest.</p>
+<div class="stats-section">
+<h2>Stats</h2>
+<p class="stats-mets-line">METs: <span id="stats-mets">0</span></p>
+<p class="stats-mets-interpretation" id="stats-mets-interpretation"></p>
+<p class="stats-mets-scale">MET 3 or less: Light exercise | MET 4 - 6: Moderate exercise | MET 7 or greater: Intense workout</p>
+<p class="stats-matrix-intro" id="stats-matrix-intro"></p>
+<div id="stats-matrix-container"></div>
+</div>
+<a href="mainmenu.html" class="btn">Back to main menu</a>
 </div>
 </div>
 <div class="sidebar sidebar-toolbar sidebar-left">
@@ -86,12 +92,21 @@
 </div>
 </div>
 <script type="module">
-import { requireAuth, getQuestState, determineNextDestination, POINTS_TO_PASS, MAX_LIVES } from "./js/game.js";
-import { setProgressBar, animateProgressBar, setLives, setMets, paintSidebarCache, writeSidebarCache } from "./js/sidebar.js";
+import {
+  requireAuth, getQuestStateFor, fetchAttemptHistoryFor, tallyAnswerEntries,
+  getMetsInterpretation, POINTS_TO_PASS, MAX_LIVES
+} from "./js/game.js";
+import {
+  setProgressBar, setLives, setMets, playCompletionAnimation, paintSidebarCache,
+  writeSidebarCache, renderStatsMatrix
+} from "./js/sidebar.js";
 import { setupPopover } from "./js/popover.js";
 import { setupPauseModal } from "./js/pause.js";
 
-setupPauseModal(1);
+const LEVEL_ID = "quest2";
+const HAS_FREETEXT = true; // Quest 2 includes freetext questions gradeable as "partially correct".
+
+setupPauseModal(2);
 setupPopover("ref1-btn", "ref1-overlay");
 setupPopover("lives-info-btn", "lives-info-overlay");
 setupPopover("mets-info-btn", "mets-info-overlay");
@@ -99,35 +114,30 @@ setupPopover("ref2-btn", "ref2-overlay");
 
 // Paint the sidebar from last known state immediately, before waiting on
 // auth/Firestore, so it never flashes back to empty on navigation.
-paintSidebarCache("quest1");
-
-const SCORE_ANIM_KEY = "pedecgScoreAnim";
+paintSidebarCache("quest2");
 
 requireAuth(async (user) => {
-  const state = await getQuestState(user.uid);
+  const state = await getQuestStateFor(user.uid, LEVEL_ID);
   const score = state ? state.score : 0;
   const target = state && state.pointsToPass ? state.pointsToPass : POINTS_TO_PASS;
   const lives = state && typeof state.lives === "number" ? state.lives : MAX_LIVES;
   const mets = state && typeof state.mets === "number" ? state.mets : 0;
-  document.getElementById("score-display").textContent =
-    state ? `Current score: ${score} / ${target} to pass` : "";
-  writeSidebarCache("quest1", { score, target, lives, maxLives: MAX_LIVES, mets });
+  const attempt = state && typeof state.attempt === "number" ? state.attempt : 1;
+
+  writeSidebarCache("quest2", { score, target, lives, maxLives: MAX_LIVES, mets });
+  setProgressBar(score, target);
   setLives(lives, MAX_LIVES);
   setMets(mets);
+  playCompletionAnimation();
 
-  const animRaw = sessionStorage.getItem(SCORE_ANIM_KEY);
-  if (animRaw) {
-    sessionStorage.removeItem(SCORE_ANIM_KEY);
-    const { from, to } = JSON.parse(animRaw);
-    animateProgressBar(from, to, target);
-  } else {
-    setProgressBar(score, target);
-  }
+  document.getElementById("stats-mets").textContent = mets;
+  document.getElementById("stats-mets-interpretation").textContent = getMetsInterpretation(mets);
 
-  document.getElementById("continue-btn").addEventListener("click", async () => {
-    const next = await determineNextDestination(user.uid);
-    window.location.href = next;
-  });
+  const historyEntries = await fetchAttemptHistoryFor(user.uid, LEVEL_ID, attempt);
+  document.getElementById("stats-matrix-intro").textContent =
+    `You faced ${historyEntries.length} challenges in this quest. Here's how you did:`;
+  const tally = tallyAnswerEntries(historyEntries);
+  renderStatsMatrix(document.getElementById("stats-matrix-container"), tally, { hasPartial: HAS_FREETEXT });
 });
 </script>
 </body>

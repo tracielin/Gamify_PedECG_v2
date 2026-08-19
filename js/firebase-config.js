@@ -21,3 +21,9 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
+// Without this, Google silently signs the user into whatever account the
+// browser already has an active session for, skipping the account-picker
+// screen entirely. Forcing `select_account` makes it always show the
+// chooser so players can pick a different Google account than the one
+// their browser is currently logged into.
+googleProvider.setCustomParameters({ prompt: "select_account" });

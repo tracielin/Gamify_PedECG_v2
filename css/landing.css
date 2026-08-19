@@ -24,7 +24,36 @@ body {
   padding: 32px;
   max-width: 560px;
   min-height: 200px;
-  max-height: 250px;
   width: 100%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.card-welcome .btn {
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+}
+
+/* Gray italicized "why do I need to log in" question, styled to look
+   like a subtle link rather than a full button. */
+.why-login-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 14px;
+  font-size: 13px;
+  font-style: italic;
+  color: #6b7280;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.why-login-btn:hover {
+  color: #1f2430;
+}
+
+/* New-user confirmation popup: stack the two choices like the pause
+   modal's action buttons. */
+#new-user-overlay .popover-box {
+  text-align: center;
 }

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="images/favicon_ecg.png">
+<title>Tell us about yourself</title>
+<link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+<div class="content">
+<div class="card">
+<h1>Welcome aboard!</h1>
+<p>Tell me a little about yourself to start your personalized learning expedition.</p>
+
+<form id="profile-form">
+
+<div class="field-group">
+<label class="field-label" for="username-input">Pick a username</label>
+<input type="text" id="username-input" class="text-input" maxlength="30" required autocomplete="off">
+</div>
+
+<div class="field-group">
+<p class="field-label">Pick an avatar</p>
+<div class="avatar-grid" id="avatar-grid">
+<label class="avatar-option"><input type="radio" name="avatar" value="&#129409;" required><span aria-hidden="true">&#129409;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#129418;"><span aria-hidden="true">&#129418;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#129413;"><span aria-hidden="true">&#129413;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#128060;"><span aria-hidden="true">&#128060;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#128040;"><span aria-hidden="true">&#128040;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#129417;"><span aria-hidden="true">&#129417;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#128034;"><span aria-hidden="true">&#128034;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#128044;"><span aria-hidden="true">&#128044;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#129419;"><span aria-hidden="true">&#129419;</span></label>
+<label class="avatar-option"><input type="radio" name="avatar" value="&#128025;"><span aria-hidden="true">&#128025;</span></label>
+</div>
+</div>
+
+<div class="field-group">
+<p class="field-label">How do you feel about your current level of ECG knowledge?</p>
+<p class="field-hint">(Please select the closest fit. This will inform the baseline "recommended learning expedition" for you that you can then customize further. Don't worry &mdash; regardless of what answer you choose below, you will still have access to all of the available content and will be able to customize your expedition at any time.)</p>
+<div class="choices">
+<label>
+<input type="radio" name="ecg-level" value="novice" required>
+I am a novice. I am not yet comfortable with all of the following: basic concepts about how ECGs are obtained, the structure of an ECG report, and the meaning of concepts like rate, rhythm, axis, intervals, morphology, etc.
+</label>
+<label>
+<input type="radio" name="ecg-level" value="refresher">
+I am comfortable with the basic concepts listed above, but would like additional practice to ensure I understand them correctly.
+</label>
+<label>
+<input type="radio" name="ecg-level" value="peds-focus">
+I am comfortable with the basic concepts listed above and with adult ECG interpretation, but am less familiar with pediatrics-specific content.
+</label>
+<label>
+<input type="radio" name="ecg-level" value="tbd">
+I am comfortable with the basic concepts listed above, but [TBD]
+</label>
+<label>
+<input type="radio" name="ecg-level" value="other" id="ecg-level-other-radio">
+Other:
+<input type="text" name="ecg-level-other-text" id="ecg-level-other-text" class="choice-other-input" placeholder="Tell us more...">
+</label>
+</div>
+</div>
+
+<button type="submit" class="btn">Start my expedition</button>
+</form>
+</div>
+</div>
+<script type="module">
+import { requireAuth } from "./js/game.js";
+import { db } from "./js/firebase-config.js";
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const form = document.getElementById("profile-form");
+const usernameInput = document.getElementById("username-input");
+const otherRadio = document.getElementById("ecg-level-other-radio");
+const otherText = document.getElementById("ecg-level-other-text");
+
+let currentUser = null;
+
+requireAuth((user) => {
+  currentUser = user;
+});
+
+// The "Other" free-text field should only be required when its radio is
+// the one actually selected.
+form.addEventListener("change", () => {
+  otherText.required = otherRadio.checked;
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const username = usernameInput.value.trim();
+  const avatar = form.querySelector('input[name="avatar"]:checked')?.value;
+  const ecgLevel = form.querySelector('input[name="ecg-level"]:checked')?.value;
+  const ecgLevelOtherText = ecgLevel === "other" ? otherText.value.trim() : null;
+
+  if (!username || !avatar || !ecgLevel) return;
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  await setDoc(doc(db, "users", currentUser.uid), {
+    username,
+    avatar,
+    ecgLevel,
+    ecgLevelOtherText,
+    profileComplete: true,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+
+  window.location.href = `expeditionplanner.html?level=${encodeURIComponent(ecgLevel)}`;
+});
+</script>
+</body>
+</html>

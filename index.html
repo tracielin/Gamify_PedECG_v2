@@ -15,27 +15,138 @@
 <p id="greeting"></p>
 <p>Welcome! Sign in or make a new account to get started. </p>
 <button id="login-btn" class="btn">Log in with Google</button>
+<button id="yahoo-login-btn" class="btn secondary">Log in with Yahoo</button>
+<button id="why-login-btn" class="why-login-btn" type="button">Why do I need to log in with Google or Yahoo?</button>
 </div>
 </div>
+
+<!-- "Why do I need to log in" info popover -->
+<div class="popover-overlay" id="why-login-overlay">
+<div class="popover-box">
+<button class="popover-close" id="why-login-close" type="button" aria-label="Close">&times;</button>
+<p>Since this website is the pet project of a full-time physician who does not yet have the resources or time to manage account password authentication logistics, she has opted to outsource the authentication component to Google and Yahoo for now. (No judgement &mdash; we all forget our passwords sometimes.) Basically, we're just using Google and Yahoo for game account creation so that you can save your game progress, but we never see your password, contacts, etc. Details below.</p>
+
+<h3>Third-Party Authentication &amp; Account Creation</h3>
+<p>When you log into our game using a third-party service such as Google or Yahoo, we utilize open authorization (OAuth) protocols. This allows you to create and access your account securely. Your third-party password is never shared with us.</p>
+
+<h3>Information We Collect</h3>
+<p><strong>Unique Account Identifier:</strong> An anonymized ID provided by Google or Yahoo to save your game progress and log you in.</p>
+<p><strong>Email Address:</strong> Used solely for backend account identification, support, and account recovery. It is never displayed publicly or shared with other players.</p>
+
+<h3>In-Game Identity &amp; Privacy</h3>
+<p><strong>Custom Usernames &amp; Avatars:</strong> Your in-game profile relies entirely on the custom username and avatar you select on our site.</p>
+<p><strong>No Public Link:</strong> Your real name, Google/Yahoo display name, and third-party profile pictures are never displayed in the game or visible to other players.</p>
+
+<h3>Information We NEVER Access or Store</h3>
+<ul>
+<li>Your Google or Yahoo passwords.</li>
+<li>Your contacts, address book, or social connections.</li>
+<li>Your emails, personal messages, or search history.</li>
+<li>Permission to post, message, or perform actions on your behalf.</li>
+</ul>
+</div>
+</div>
+
+<!-- New-user confirmation popup: shown right after a successful sign-in
+     when we don't yet have a Firestore user doc for this account, so we
+     can tell a genuinely new player from someone who fat-fingered the
+     wrong Google/Yahoo account. -->
+<div class="popover-overlay" id="new-user-overlay">
+<div class="popover-box">
+<h3>Looks like you're new here!</h3>
+<p>Is that correct?</p>
+<div class="pause-modal-actions">
+<button id="new-user-yes-btn" class="btn" type="button">Correct, this is my first time trying this game</button>
+<button id="new-user-no-btn" class="btn secondary" type="button">Oops, I meant to use my other account</button>
+</div>
+</div>
+</div>
+
 <script type="module">
-import { auth, googleProvider } from "./js/firebase-config.js";
-import { signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { auth, googleProvider, db } from "./js/firebase-config.js";
+import { signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { setupPopover } from "./js/popover.js";
 
 const greeting = document.getElementById("greeting");
 const loginBtn = document.getElementById("login-btn");
+const yahooBtn = document.getElementById("yahoo-login-btn");
+const newUserOverlay = document.getElementById("new-user-overlay");
+const newUserYesBtn = document.getElementById("new-user-yes-btn");
+const newUserNoBtn = document.getElementById("new-user-no-btn");
+
+setupPopover("why-login-btn", "why-login-overlay");
+
+// Tracks the signed-in-but-not-yet-confirmed user while the "Looks like
+// you're new here!" popup is open.
+let pendingUser = null;
 
 loginBtn.addEventListener("click", () => {
   signInWithPopup(auth, googleProvider).catch((err) => console.error("Sign-in error:", err));
 });
 
+// Yahoo sign-in is a placeholder for now - there's no Yahoo OAuth
+// provider wired up yet, so clicking it just explains that.
+yahooBtn.addEventListener("click", () => {
+  alert("Yahoo sign-in is coming soon! For now, please use \"Log in with Google.\"");
+});
+
+function openNewUserConfirm(user) {
+  pendingUser = user;
+  newUserOverlay.classList.add("open");
+}
+
+function closeNewUserConfirm() {
+  pendingUser = null;
+  newUserOverlay.classList.remove("open");
+}
+
+newUserYesBtn.addEventListener("click", async () => {
+  if (!pendingUser) return;
+  const uid = pendingUser.uid;
+  await setDoc(doc(db, "users", uid), {
+    provider: pendingUser.providerData?.[0]?.providerId || "google.com",
+    createdAt: serverTimestamp(),
+    profileComplete: false
+  }, { merge: true });
+  closeNewUserConfirm();
+  window.location.href = "newuserprofile.html";
+});
+
+newUserNoBtn.addEventListener("click", async () => {
+  closeNewUserConfirm();
+  await signOut(auth);
+  greeting.textContent = "No problem! Please sign in with the correct account below.";
+});
+
 // As soon as we know who's signed in (whether from a fresh sign-in just
-// now, or an already-active session), send them straight to the main
-// menu - index.html is just the sign-in gate, not a destination.
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    greeting.textContent = `Welcome, ${user.displayName || "player"}!`;
-    loginBtn.style.display = "none";
+// now, or an already-active session), figure out where they belong:
+// brand-new accounts get the confirmation popup (then the new-user
+// profile page), returning accounts with an unfinished profile resume
+// that page, and everyone else goes straight to the main menu - index.html
+// is just the sign-in gate, not a destination.
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  // Don't re-evaluate while we're waiting on the new-account confirmation
+  // popup - onAuthStateChanged can fire more than once for one sign-in.
+  if (newUserOverlay.classList.contains("open")) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (!snap.exists()) {
+    openNewUserConfirm(user);
+    return;
+  }
+
+  greeting.textContent = `Welcome, ${user.displayName || "player"}!`;
+  loginBtn.style.display = "none";
+  yahooBtn.style.display = "none";
+
+  if (snap.data().profileComplete) {
     window.location.href = "mainmenu.html";
+  } else {
+    window.location.href = "newuserprofile.html";
   }
 });
 </script>

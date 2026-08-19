@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="images/favicon_ecg.png">
+<title>Expedition Planner</title>
+<link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+<div class="content">
+<div class="card">
+<div class="page-header">
+<h1>Expedition Planner</h1>
+</div>
+<p>This is where your personalized learning expedition will be built, based on how you described your current ECG knowledge.</p>
+<p id="level-note" class="field-hint"></p>
+<p><em>This page is a placeholder &mdash; the real expedition planner is coming soon. For now, head to the main menu to start playing.</em></p>
+<a href="mainmenu.html" class="btn">Go to Main Menu</a>
+</div>
+</div>
+<script type="module">
+import { requireAuth } from "./js/game.js";
+
+const LEVEL_LABELS = {
+  "novice": "Novice - starting from the basics",
+  "refresher": "Comfortable with the basics, wants more practice",
+  "peds-focus": "Comfortable with adult ECGs, newer to pediatrics",
+  "tbd": "Comfortable with the basics, with another need in mind",
+  "other": "A custom starting point"
+};
+
+requireAuth(() => {
+  const params = new URLSearchParams(window.location.search);
+  const level = params.get("level");
+  const note = document.getElementById("level-note");
+  if (level && LEVEL_LABELS[level]) {
+    note.textContent = `Starting point on file: ${LEVEL_LABELS[level]}.`;
+  }
+});
+</script>
+</body>
+</html>
